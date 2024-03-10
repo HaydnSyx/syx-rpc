@@ -1,4 +1,4 @@
-package cn.syx.rpc.core.api;
+package cn.syx.rpc.demo.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,11 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RpcResponse<T> {
+public class Order {
 
-    private boolean status;
-
-    private T data;
-
-    private Exception ex;
+    private Long id;
+    private Double amount;
 }
