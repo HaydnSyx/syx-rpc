@@ -2,6 +2,7 @@ package cn.syx.rpc.demo.consumer;
 
 import cn.syx.rpc.core.annotation.SyxConsumer;
 import cn.syx.rpc.core.consumer.ConsumerConfig;
+import cn.syx.rpc.demo.api.DemoService;
 import cn.syx.rpc.demo.api.OrderService;
 import cn.syx.rpc.demo.api.User;
 import cn.syx.rpc.demo.api.UserService;
@@ -20,6 +21,8 @@ public class SyxRpcDemoConsumerApplication {
     private UserService userService;
     @SyxConsumer
     private OrderService orderService;
+    @SyxConsumer
+    private DemoService demoService;
 
     public static void main(String[] args) {
         SpringApplication.run(SyxRpcDemoConsumerApplication.class, args);
@@ -33,10 +36,10 @@ public class SyxRpcDemoConsumerApplication {
             User user = userService.findById(100);
             System.out.println("getUser(100) =====> " + user);
 
-            int num = userService.aaa(10);
+            int num = demoService.aaa(10);
             System.out.println("aaa(10) =====> " + num);
 
-            userService.bbb("syx");
+            demoService.bbb("syx");
 
 //            cn.syx.rpc.demo.api.Order order = orderService.findById(1L);
 //            System.out.println("getOrder(1) =====> " + order);

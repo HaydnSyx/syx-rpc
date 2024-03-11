@@ -23,6 +23,7 @@
         <module>syx-rpc-core</module>
         <module>syx-rpc-demo-api</module>
         <module>syx-rpc-demo-provider</module>
+        <module>syx-rpc-demo-consumer</module>
     </modules>
 
     <dependencies>
