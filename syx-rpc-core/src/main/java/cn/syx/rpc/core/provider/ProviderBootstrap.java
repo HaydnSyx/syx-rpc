@@ -3,6 +3,7 @@ package cn.syx.rpc.core.provider;
 import cn.syx.rpc.core.annotation.SyxProvider;
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
+import cn.syx.rpc.core.utils.TypeUtil;
 import com.alibaba.fastjson.JSON;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.BeansException;
@@ -11,9 +12,9 @@ import org.springframework.context.ApplicationContextAware;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ProviderBootstrap implements ApplicationContextAware {
 
@@ -49,7 +50,14 @@ public class ProviderBootstrap implements ApplicationContextAware {
         Object bean = PROVIDER_MAP.get(service);
         try {
             Method beanMethod = findMethod(bean, methodSign);
-            Object data = beanMethod.invoke(bean, args);
+            List<Object> realArgs = new ArrayList<>();
+            if (args != null && args.length > 0) {
+                realArgs = Arrays.stream(args)
+                        // fixme
+                        .map(e -> TypeUtil.cast(e, beanMethod.getParameterTypes()[0]))
+                        .collect(Collectors.toList());
+            }
+            Object data = beanMethod.invoke(bean, realArgs.toArray());
             return new RpcResponse<>(true, data, null);
         } catch (RuntimeException e) {
             return new RpcResponse<>(false, null, e);

@@ -36,14 +36,14 @@ public class SyxRpcDemoConsumerApplication {
 //            User user = userService.findById(100);
 //            System.out.println("getUser(100) =====> " + user);
 
-            /*int num = demoService.aaa();
+            int num = demoService.aaa();
             System.out.println("aaa() =====> " + num);
 
             num = demoService.aaa(10);
             System.out.println("aaa(int) =====> " + num);
 
             num = demoService.aaa(Integer.valueOf(9999));
-            System.out.println("aaa(Integer) =====> " + num);*/
+            System.out.println("aaa(Integer) =====> " + num);
 
             User user = new User(999, "syx");
             int num4 = demoService.aaa(user);
