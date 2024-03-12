@@ -36,6 +36,7 @@ public class ProviderBootstrap implements ApplicationContextAware {
         String service = request.getService();
         String method = request.getMethod();
         Object[] args = request.getArgs();
+        String methodSign = request.getMethodSign();
 
         System.out.println("consumer request ======> " + JSON.toJSONString(request));
 
@@ -47,7 +48,7 @@ public class ProviderBootstrap implements ApplicationContextAware {
 
         Object bean = PROVIDER_MAP.get(service);
         try {
-            Method beanMethod = findMethod(bean, method);
+            Method beanMethod = findMethod(bean, methodSign);
             Object data = beanMethod.invoke(bean, args);
             return new RpcResponse<>(true, data, null);
         } catch (RuntimeException e) {
@@ -59,10 +60,23 @@ public class ProviderBootstrap implements ApplicationContextAware {
         }
     }
 
-    private Method findMethod(Object bean, String targetMethodName) {
+    private Method findMethod(Object bean, String methodSign) {
+        // 解析方法签名
+        String[] split = methodSign.split("#");
+        String methodNameKey = split[1];
         Method[] methods = bean.getClass().getMethods();
         for (Method method : methods) {
-            if (Objects.equals(method.getName(), targetMethodName)) {
+            StringBuilder sb = new StringBuilder().append(method.getName()).append("(");
+            for (Class<?> parameterType : method.getParameterTypes()) {
+                sb.append(parameterType.getCanonicalName()).append(",");
+            }
+            if (sb.charAt(sb.length() - 1) == ',') {
+                sb.deleteCharAt(sb.length() - 1);
+            }
+            sb.append(")");
+
+            String currentMethodParamKey = sb.toString();
+            if (Objects.equals(methodNameKey, currentMethodParamKey)) {
                 return method;
             }
         }

@@ -9,7 +9,9 @@ public class RpcRequest {
     private String service;
     /** 方法 */
     private String method;
-    private Class<?>[] parameterTypes;
+//    private Class<?>[] parameterTypes;
     /** 参数数组 */
     private Object[] args;
+    /** 方法签名 */
+    private String methodSign;
 }

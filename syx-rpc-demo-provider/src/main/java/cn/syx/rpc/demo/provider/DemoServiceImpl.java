@@ -2,6 +2,7 @@ package cn.syx.rpc.demo.provider;
 
 import cn.syx.rpc.core.annotation.SyxProvider;
 import cn.syx.rpc.demo.api.DemoService;
+import cn.syx.rpc.demo.api.User;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -11,8 +12,26 @@ import java.util.concurrent.ThreadLocalRandom;
 public class DemoServiceImpl implements DemoService {
 
     @Override
+    public int aaa() {
+        return 666;
+    }
+
+    @Override
     public int aaa(int id) {
-        return ThreadLocalRandom.current().nextInt(id);
+        System.out.println("进入aaa(int id)方法中: param=" + id);
+        return 777;
+    }
+
+    @Override
+    public int aaa(Integer id) {
+        System.out.println("进入aaa(Integer id)方法中: param=" + id);
+        return 888;
+    }
+
+    @Override
+    public int aaa(User user) {
+        System.out.println("进入aaa(User user)方法中: param=" + user);
+        return 999;
     }
 
     @Override

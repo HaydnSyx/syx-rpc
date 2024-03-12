@@ -44,7 +44,18 @@ public class SyxInvokerHandler implements InvocationHandler {
         request.setService(cls.getCanonicalName());
         request.setMethod(methodName);
         request.setArgs(args);
-        request.setParameterTypes(method.getParameterTypes());
+//        request.setParameterTypes(method.getParameterTypes());
+        // 生成方法签名
+        StringBuilder sb = new StringBuilder();
+        sb.append(cls.getCanonicalName()).append("#").append(methodName).append("(");
+        for (Class<?> parameterType : method.getParameterTypes()) {
+            sb.append(parameterType.getCanonicalName()).append(",");
+        }
+        if (sb.charAt(sb.length() - 1) == ',') {
+            sb.deleteCharAt(sb.length() - 1);
+        }
+        sb.append(")");
+        request.setMethodSign(sb.toString());
 
         Class<?> returnCls = method.getReturnType();
 

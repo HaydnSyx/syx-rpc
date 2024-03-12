@@ -2,7 +2,13 @@ package cn.syx.rpc.demo.api;
 
 public interface DemoService {
 
+    int aaa();
+
     int aaa(int id);
+
+    int aaa(Integer id);
+
+    int aaa(User user);
 
     void bbb(String name);
 
