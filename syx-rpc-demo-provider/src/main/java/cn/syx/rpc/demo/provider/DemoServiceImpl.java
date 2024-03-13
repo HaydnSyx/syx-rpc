@@ -23,6 +23,12 @@ public class DemoServiceImpl implements DemoService {
     }
 
     @Override
+    public int aaa(int id, String name) {
+        System.out.println("进入aaa(int id String name)方法中: param=" + id + ", " + name);
+        return 789;
+    }
+
+    @Override
     public int aaa(Integer id) {
         System.out.println("进入aaa(Integer id)方法中: param=" + id);
         return 888;

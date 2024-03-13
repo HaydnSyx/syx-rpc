@@ -45,6 +45,9 @@ public class SyxRpcDemoConsumerApplication {
             num = demoService.aaa(Integer.valueOf(9999));
             System.out.println("aaa(Integer) =====> " + num);
 
+            num = demoService.aaa(888, "syx");
+            System.out.println("aaa(int, String) =====> " + num);
+
             User user = new User(999, "syx");
             int num4 = demoService.aaa(user);
             System.out.println("aaa(user) =====> " + num4);

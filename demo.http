@@ -1,4 +1,4 @@
-# 获取用户信息
+### 获取用户信息
 POST http://localhost:8080/
 Content-Type: application/json
 
@@ -6,4 +6,14 @@ Content-Type: application/json
   "service": "cn.syx.rpc.demo.api.UserService",
   "method": "findById",
   "args": [10000]
+}
+
+### 测试demo
+POST http://localhost:8080/
+Content-Type: application/json
+
+{
+"service": "cn.syx.rpc.demo.api.DemoService",
+"methodSign": "aaa(int,java.lang.String)",
+"args": [1888, "hello"]
 }

@@ -3,24 +3,28 @@ package cn.syx.rpc.core.provider;
 import cn.syx.rpc.core.annotation.SyxProvider;
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
+import cn.syx.rpc.core.meta.ProviderMeta;
+import cn.syx.rpc.core.utils.MethodUtil;
 import cn.syx.rpc.core.utils.TypeUtil;
 import com.alibaba.fastjson.JSON;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class ProviderBootstrap implements ApplicationContextAware {
 
     private ApplicationContext context;
 
-    private Map<String, Object> PROVIDER_MAP = new HashMap<>();
+    private MultiValueMap<String, ProviderMeta> PROVIDER_MAP = new LinkedMultiValueMap<>();
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -28,36 +32,43 @@ public class ProviderBootstrap implements ApplicationContextAware {
     }
 
     @PostConstruct
-    public void buildProvider() {
+    public void start() {
         Map<String, Object> beans = context.getBeansWithAnnotation(SyxProvider.class);
         beans.values().forEach(this::getInterface);
     }
 
     public RpcResponse<Object> invokerRequest(RpcRequest request) {
         String service = request.getService();
-        String method = request.getMethod();
         Object[] args = request.getArgs();
         String methodSign = request.getMethodSign();
 
         System.out.println("consumer request ======> " + JSON.toJSONString(request));
 
-        if (Objects.equals("toString", method)
-                || Objects.equals("hashCode", method)
-                || Objects.equals("equals", method)) {
+        String method = methodSign.split("\\(")[0];
+        if (MethodUtil.isLocalMethod(method)) {
             return null;
         }
 
-        Object bean = PROVIDER_MAP.get(service);
+        List<ProviderMeta> metas = PROVIDER_MAP.get(service);
         try {
-            Method beanMethod = findMethod(bean, methodSign);
-            List<Object> realArgs = new ArrayList<>();
-            if (args != null && args.length > 0) {
-                realArgs = Arrays.stream(args)
-                        // fixme
-                        .map(e -> TypeUtil.cast(e, beanMethod.getParameterTypes()[0]))
-                        .collect(Collectors.toList());
+            if (Objects.isNull(metas) || metas.isEmpty()) {
+                throw new RuntimeException("未发现提供方");
             }
-            Object data = beanMethod.invoke(bean, realArgs.toArray());
+
+            ProviderMeta providerMeta= findProviderMeta(metas, methodSign);
+            if (Objects.isNull(providerMeta)) {
+                throw new RuntimeException("未匹配到合适方法");
+            }
+
+            Method metaMethod = providerMeta.getMethod();
+            if (args != null && args.length > 0) {
+                for (int i = 0; i < args.length; i++) {
+                    Class<?>[] parameterTypes = metaMethod.getParameterTypes();
+                    args[i] = TypeUtil.cast(args[i], parameterTypes[i]);
+                }
+            }
+
+            Object data = metaMethod.invoke(providerMeta.getService(), args);
             return new RpcResponse<>(true, data, null);
         } catch (RuntimeException e) {
             return new RpcResponse<>(false, null, e);
@@ -68,24 +79,10 @@ public class ProviderBootstrap implements ApplicationContextAware {
         }
     }
 
-    private Method findMethod(Object bean, String methodSign) {
-        // 解析方法签名
-        String[] split = methodSign.split("#");
-        String methodNameKey = split[1];
-        Method[] methods = bean.getClass().getMethods();
-        for (Method method : methods) {
-            StringBuilder sb = new StringBuilder().append(method.getName()).append("(");
-            for (Class<?> parameterType : method.getParameterTypes()) {
-                sb.append(parameterType.getCanonicalName()).append(",");
-            }
-            if (sb.charAt(sb.length() - 1) == ',') {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            sb.append(")");
-
-            String currentMethodParamKey = sb.toString();
-            if (Objects.equals(methodNameKey, currentMethodParamKey)) {
-                return method;
+    private ProviderMeta findProviderMeta(List<ProviderMeta> metas, String methodSign) {
+        for (ProviderMeta meta : metas) {
+            if (meta.getMethodSign().equals(methodSign)) {
+                return meta;
             }
         }
         return null;
@@ -93,6 +90,22 @@ public class ProviderBootstrap implements ApplicationContextAware {
 
     private void getInterface(Object o) {
         Class<?> cls = o.getClass().getInterfaces()[0];
-        PROVIDER_MAP.put(cls.getCanonicalName(), o);
+        Method[] methods = cls.getMethods();
+        for (Method method : methods) {
+            if (MethodUtil.isLocalMethod(method)) {
+                continue;
+            }
+
+            createProviderMeta(cls, o, method);
+        }
+    }
+
+    private void createProviderMeta(Class<?> cls, Object service, Method method) {
+        ProviderMeta providerMeta = new ProviderMeta();
+        providerMeta.setMethod(method);
+        providerMeta.setMethodSign(MethodUtil.generateMethodSign(method));
+        providerMeta.setService(service);
+        PROVIDER_MAP.add(cls.getCanonicalName(), providerMeta);
+        System.out.println("provider register ======> " + cls.getCanonicalName() + " : " + providerMeta.getMethodSign());
     }
 }

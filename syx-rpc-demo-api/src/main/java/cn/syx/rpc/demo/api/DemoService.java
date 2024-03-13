@@ -6,6 +6,8 @@ public interface DemoService {
 
     int aaa(int id);
 
+    int aaa(int id, String name);
+
     int aaa(Integer id);
 
     int aaa(User user);

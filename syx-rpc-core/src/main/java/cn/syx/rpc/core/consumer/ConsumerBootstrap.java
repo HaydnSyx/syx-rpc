@@ -29,7 +29,6 @@ public class ConsumerBootstrap implements ApplicationContextAware {
             List<Field> fields = findAnnotationField(bean.getClass(), SyxConsumer.class);
 
             fields.forEach(e -> {
-//                System.out.println(e.getName());
                 try {
                     Class<?> service = e.getType();
                     String serviceName = service.getCanonicalName();

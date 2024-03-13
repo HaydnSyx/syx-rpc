@@ -2,6 +2,7 @@ package cn.syx.rpc.core.consumer;
 
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
+import cn.syx.rpc.core.utils.MethodUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import okhttp3.*;
@@ -34,28 +35,15 @@ public class SyxInvokerHandler implements InvocationHandler {
 
         // 判断基础类型
         String methodName = method.getName();
-        if (Objects.equals("toString", methodName)
-                || Objects.equals("hashCode", methodName)
-                || Objects.equals("equals", methodName)) {
+        if (MethodUtil.isLocalMethod(methodName)) {
             return method.invoke(proxy, args);
         }
 
         RpcRequest request = new RpcRequest();
         request.setService(cls.getCanonicalName());
-        request.setMethod(methodName);
         request.setArgs(args);
-//        request.setParameterTypes(method.getParameterTypes());
         // 生成方法签名
-        StringBuilder sb = new StringBuilder();
-        sb.append(cls.getCanonicalName()).append("#").append(methodName).append("(");
-        for (Class<?> parameterType : method.getParameterTypes()) {
-            sb.append(parameterType.getCanonicalName()).append(",");
-        }
-        if (sb.charAt(sb.length() - 1) == ',') {
-            sb.deleteCharAt(sb.length() - 1);
-        }
-        sb.append(")");
-        request.setMethodSign(sb.toString());
+        request.setMethodSign(MethodUtil.generateMethodSign(method));
 
         Class<?> returnCls = method.getReturnType();
 
