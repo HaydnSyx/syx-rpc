@@ -17,7 +17,7 @@ public class MethodUtil {
     }
 
     public static boolean isLocalMethod(Method method) {
-        return method.getDeclaringClass().isAssignableFrom(Object.class);
+        return isLocalMethod(method.getName());
     }
 
     public static String generateMethodSign(Method method) {

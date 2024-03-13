@@ -12,6 +12,8 @@ public interface DemoService {
 
     int aaa(User user);
 
+    long aaa(long xxx);
+
     void bbb(String name);
 
     long ccc(int id);
@@ -27,4 +29,10 @@ public interface DemoService {
     String hhh(int id);
 
     Object iii(int id);
+
+    int[] jjj(int id);
+
+    long[] kkk();
+
+    int[] mmm(int[] a);
 }

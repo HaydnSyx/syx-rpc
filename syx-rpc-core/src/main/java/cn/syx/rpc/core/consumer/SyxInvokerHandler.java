@@ -3,14 +3,13 @@ package cn.syx.rpc.core.consumer;
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
 import cn.syx.rpc.core.utils.MethodUtil;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import cn.syx.rpc.core.utils.TypeUtil;
+import com.alibaba.fastjson2.JSON;
 import okhttp3.*;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class SyxInvokerHandler implements InvocationHandler {
@@ -49,7 +48,7 @@ public class SyxInvokerHandler implements InvocationHandler {
 
         RpcResponse<?> response = post(request);
         if (response.isStatus()) {
-            return getObject(response.getData(), returnCls);
+            return TypeUtil.cast(response.getData(), returnCls);
         }
 
         Exception ex = response.getEx();
@@ -67,46 +66,5 @@ public class SyxInvokerHandler implements InvocationHandler {
         System.out.println("provider response ======> " + data);
         RpcResponse<?> response = JSON.parseObject(data, RpcResponse.class);
         return response;
-    }
-
-    private static Object getObject(Object obj, Class<?> returnCls) {
-        if (Objects.isNull(obj) || (returnCls == void.class || returnCls == Void.class)) {
-            return null;
-        }
-
-        if (returnCls == Objects.class) {
-            return obj;
-        }
-
-        if (obj instanceof JSONObject) {
-            return ((JSONObject) obj).toJavaObject(returnCls);
-        }
-
-        if (returnCls.isInstance(obj)) {
-            return obj;
-        } else {
-            if (obj instanceof Number data) {
-                if (returnCls == int.class || returnCls == Integer.class) {
-                    return data.intValue();
-                } else if (returnCls == long.class || returnCls == Long.class) {
-                    return data.longValue();
-                } else if (returnCls == byte.class || returnCls == Byte.class) {
-                    return data.byteValue();
-                } else if (returnCls == short.class || returnCls == Short.class) {
-                    return data.shortValue();
-                } else if (returnCls == float.class || returnCls == Float.class) {
-                    return data.floatValue();
-                } else if (returnCls == double.class || returnCls == Double.class) {
-                    return data.doubleValue();
-                }
-            } else if (obj instanceof Boolean data && (returnCls == boolean.class || returnCls == Boolean.class)) {
-                return data;
-            } else if (obj instanceof Character data && (returnCls == char.class || returnCls == Character.class)) {
-                return data;
-            } else if (obj instanceof String data && returnCls == String.class) {
-                return data;
-            }
-            throw new RuntimeException("未能成功转换对应类型");
-        }
     }
 }

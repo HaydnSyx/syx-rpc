@@ -6,7 +6,7 @@ import cn.syx.rpc.core.api.RpcResponse;
 import cn.syx.rpc.core.meta.ProviderMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
 import cn.syx.rpc.core.utils.TypeUtil;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -61,13 +61,7 @@ public class ProviderBootstrap implements ApplicationContextAware {
             }
 
             Method metaMethod = providerMeta.getMethod();
-            if (args != null && args.length > 0) {
-                for (int i = 0; i < args.length; i++) {
-                    Class<?>[] parameterTypes = metaMethod.getParameterTypes();
-                    args[i] = TypeUtil.cast(args[i], parameterTypes[i]);
-                }
-            }
-
+            castArgs(args, metaMethod);
             Object data = metaMethod.invoke(providerMeta.getService(), args);
             return new RpcResponse<>(true, data, null);
         } catch (RuntimeException e) {
@@ -76,6 +70,15 @@ public class ProviderBootstrap implements ApplicationContextAware {
             return new RpcResponse<>(false, null, new RuntimeException(e.getTargetException().getMessage()));
         } catch (IllegalAccessException e) {
             return new RpcResponse<>(false, null, new RuntimeException(e.getMessage()));
+        }
+    }
+
+    private static void castArgs(Object[] args, Method metaMethod) {
+        if (args != null && args.length > 0) {
+            for (int i = 0; i < args.length; i++) {
+                Class<?>[] parameterTypes = metaMethod.getParameterTypes();
+                args[i] = TypeUtil.cast(args[i], parameterTypes[i]);
+            }
         }
     }
 
@@ -106,6 +109,6 @@ public class ProviderBootstrap implements ApplicationContextAware {
         providerMeta.setMethodSign(MethodUtil.generateMethodSign(method));
         providerMeta.setService(service);
         PROVIDER_MAP.add(cls.getCanonicalName(), providerMeta);
-        System.out.println("provider register ======> " + cls.getCanonicalName() + " : " + providerMeta.getMethodSign());
+//        System.out.println("provider register ======> " + cls.getCanonicalName() + " : " + providerMeta.getMethodSign());
     }
 }

@@ -5,8 +5,6 @@ import cn.syx.rpc.demo.api.DemoService;
 import cn.syx.rpc.demo.api.User;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 @Service
 @SyxProvider
 public class DemoServiceImpl implements DemoService {
@@ -38,6 +36,11 @@ public class DemoServiceImpl implements DemoService {
     public int aaa(User user) {
         System.out.println("进入aaa(User user)方法中: param=" + user);
         return 999;
+    }
+
+    @Override
+    public long aaa(long xxx) {
+        return 10000L + xxx;
     }
 
     @Override
@@ -90,5 +93,21 @@ public class DemoServiceImpl implements DemoService {
             return null;
         }
         return 1232;
+    }
+
+    @Override
+    public int[] jjj(int id) {
+        System.out.println("jjj: " + id);
+        return new int[]{1, 2, 3, 4, 5};
+    }
+
+    @Override
+    public long[] kkk() {
+        return new long[]{1L, 2L, 3L};
+    }
+
+    @Override
+    public int[] mmm(int[] a) {
+        return a;
     }
 }
