@@ -1,5 +1,6 @@
 package cn.syx.rpc.demo.api;
 
+import java.util.List;
 import java.util.Map;
 
 public interface UserService {
@@ -11,4 +12,10 @@ public interface UserService {
     Map<String, Object> findByIdWithMap(int id);
 
     User convertTOUser(Map<String, Object> map);
+
+    List<User> getUserList(List<User> users);
+
+    Map<String, User> getUserMap(Map<String, User> users);
+
+    Map<String, User> userListToMap(List<User> users);
 }

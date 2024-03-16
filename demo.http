@@ -1,19 +1,42 @@
 ### 获取用户信息
-POST http://localhost:8080/
+POST http://localhost:6082/
 Content-Type: application/json
 
 {
   "service": "cn.syx.rpc.demo.api.UserService",
-  "method": "findById",
+  "methodSign": "findById(int)",
   "args": [10000]
 }
 
+### 获取用户信息
+GET http://localhost:7080/?id=100
+
 ### 测试demo
-POST http://localhost:8080/
+POST http://localhost:6080/
 Content-Type: application/json
 
 {
 "service": "cn.syx.rpc.demo.api.DemoService",
 "methodSign": "aaa(int,java.lang.String)",
 "args": [1888, "hello"]
+}
+
+### 测试getUserList
+POST http://localhost:6080/
+Content-Type: application/json
+
+{
+  "service": "cn.syx.rpc.demo.api.UserService",
+  "methodSign": "getUserList(java.util.List)",
+  "args": [[{"id":1,"name":"name1"},{"id":2,"name":"name2"},{"id":3,"name":"name3"}]]
+}
+
+### 测试userListToMap
+POST http://localhost:6080/
+Content-Type: application/json
+
+{
+  "service": "cn.syx.rpc.demo.api.UserService",
+  "methodSign": "userListToMap(java.util.List)",
+  "args": [[{"id":1,"name":"name1"},{"id":2,"name":"name2"},{"id":3,"name":"name3"}]]
 }
