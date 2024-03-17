@@ -5,6 +5,7 @@ import cn.syx.rpc.core.api.LoadBalancer;
 import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.api.Router;
 import cn.syx.rpc.core.api.RpcContext;
+import com.alibaba.fastjson2.JSON;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -97,7 +98,18 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
 
     private Object createFromRegistryCenter(Class<?> service, RpcContext context, RegistryCenter rc) {
         String serviceName = service.getCanonicalName();
-        List<String> providers = rc.fetchAll(serviceName);
+        final List<String> providers = mapUrls(rc.fetchAll(serviceName));
+        System.out.println("real providers ======> " + JSON.toJSON(providers));
+        // 订阅服务
+        rc.subscribe(serviceName, event -> {
+            providers.clear();
+            providers.addAll(mapUrls(event.getData()));
+        });
+
         return createConsumer(service, context, providers);
+    }
+
+    private List<String> mapUrls(List<String> urls) {
+        return urls.stream().map(e -> "http://" + e.replace('_', ':')).collect(Collectors.toList());
     }
 }

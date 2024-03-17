@@ -42,7 +42,7 @@ public class SyxRpcDemoConsumerApplication {
         return userService.findById(id);
     }
 
-//    @Bean
+    @Bean
     @Order(Integer.MAX_VALUE)
     public ApplicationRunner consumer_runner() {
         return x -> {

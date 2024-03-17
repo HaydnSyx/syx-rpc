@@ -1,6 +1,7 @@
 package cn.syx.rpc.core.provider;
 
 import cn.syx.rpc.core.annotation.SyxProvider;
+import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
 import cn.syx.rpc.core.meta.ProviderMeta;
@@ -8,7 +9,10 @@ import cn.syx.rpc.core.utils.MethodUtil;
 import cn.syx.rpc.core.utils.TypeUtil;
 import com.alibaba.fastjson2.JSON;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import lombok.SneakyThrows;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.LinkedMultiValueMap;
@@ -16,8 +20,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -25,6 +28,10 @@ import java.util.Objects;
 public class ProviderBootstrap implements ApplicationContextAware {
 
     private ApplicationContext context;
+
+    private String instance;
+    @Value("${server.port}")
+    private int port;
 
     private MultiValueMap<String, ProviderMeta> PROVIDER_MAP = new LinkedMultiValueMap<>();
 
@@ -34,9 +41,52 @@ public class ProviderBootstrap implements ApplicationContextAware {
     }
 
     @PostConstruct
-    public void start() {
+    public void init() {
         Map<String, Object> beans = context.getBeansWithAnnotation(SyxProvider.class);
         beans.values().forEach(this::getInterface);
+    }
+
+    @SneakyThrows
+    public void start() {
+        String ip = InetAddress.getLocalHost().getHostAddress();
+        this.instance = ip + "_" + port;
+        PROVIDER_MAP.keySet().forEach(this::registerService);
+    }
+
+    @PreDestroy
+    public void stop() {
+        PROVIDER_MAP.keySet().forEach(this::unregisterService);
+    }
+
+    private void getInterface(Object o) {
+        Class<?> cls = o.getClass().getInterfaces()[0];
+        Method[] methods = cls.getMethods();
+        for (Method method : methods) {
+            if (MethodUtil.isLocalMethod(method)) {
+                continue;
+            }
+
+            createProviderMeta(cls, o, method);
+        }
+    }
+
+    private void createProviderMeta(Class<?> cls, Object service, Method method) {
+        ProviderMeta providerMeta = new ProviderMeta();
+        providerMeta.setMethod(method);
+        providerMeta.setMethodSign(MethodUtil.generateMethodSign(method));
+        providerMeta.setService(service);
+        PROVIDER_MAP.add(cls.getCanonicalName(), providerMeta);
+//        System.out.println("provider register ======> " + cls.getCanonicalName() + " : " + providerMeta.getMethodSign());
+    }
+
+    private void registerService(String service) {
+        RegistryCenter registryCenter = context.getBean(RegistryCenter.class);
+        registryCenter.register(service, this.instance);
+    }
+
+    private void unregisterService(String service) {
+        RegistryCenter registryCenter = context.getBean(RegistryCenter.class);
+        registryCenter.unregister(service, this.instance);
     }
 
     public RpcResponse<Object> invokerRequest(RpcRequest request) {
@@ -92,26 +142,5 @@ public class ProviderBootstrap implements ApplicationContextAware {
             }
         }
         return null;
-    }
-
-    private void getInterface(Object o) {
-        Class<?> cls = o.getClass().getInterfaces()[0];
-        Method[] methods = cls.getMethods();
-        for (Method method : methods) {
-            if (MethodUtil.isLocalMethod(method)) {
-                continue;
-            }
-
-            createProviderMeta(cls, o, method);
-        }
-    }
-
-    private void createProviderMeta(Class<?> cls, Object service, Method method) {
-        ProviderMeta providerMeta = new ProviderMeta();
-        providerMeta.setMethod(method);
-        providerMeta.setMethodSign(MethodUtil.generateMethodSign(method));
-        providerMeta.setService(service);
-        PROVIDER_MAP.add(cls.getCanonicalName(), providerMeta);
-//        System.out.println("provider register ======> " + cls.getCanonicalName() + " : " + providerMeta.getMethodSign());
     }
 }

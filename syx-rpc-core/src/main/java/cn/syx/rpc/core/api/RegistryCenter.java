@@ -1,5 +1,7 @@
 package cn.syx.rpc.core.api;
 
+import cn.syx.rpc.core.registry.ChangeListener;
+
 import java.util.List;
 
 public interface RegistryCenter {
@@ -14,7 +16,7 @@ public interface RegistryCenter {
 
     List<String> fetchAll(String serviceName);
 
-//    void subscribe(String service, NotifyListener listener);
+    void subscribe(String service, ChangeListener listener);
 
     class StaticRegistryCenter implements RegistryCenter {
 
@@ -47,6 +49,11 @@ public interface RegistryCenter {
         @Override
         public List<String> fetchAll(String serviceName) {
             return this.providers;
+        }
+
+        @Override
+        public void subscribe(String service, ChangeListener listener) {
+            // do nothing
         }
     }
 }

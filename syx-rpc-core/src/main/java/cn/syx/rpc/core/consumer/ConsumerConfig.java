@@ -4,6 +4,7 @@ import cn.syx.rpc.core.api.LoadBalancer;
 import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.api.Router;
 import cn.syx.rpc.core.cluster.RoundRibbonLoadBalancer;
+import cn.syx.rpc.core.registry.ZkRegistryCenter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
@@ -44,8 +45,6 @@ public class ConsumerConfig {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     public RegistryCenter registryCenter() {
-        return new RegistryCenter.StaticRegistryCenter(List.of(
-                providerUrls.split(",")
-        ));
+        return new ZkRegistryCenter();
     }
 }
