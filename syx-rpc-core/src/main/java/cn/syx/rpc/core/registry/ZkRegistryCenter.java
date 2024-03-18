@@ -20,6 +20,7 @@ public class ZkRegistryCenter implements RegistryCenter {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
         client = CuratorFrameworkFactory.builder()
                 .connectString("localhost:2181")
+//                .connectString("syx.workspace.com:2181,syx.workspace.com:2182,syx.workspace.com:2183")
                 .namespace("SyxRpc")
                 .retryPolicy(retryPolicy)
                 .build();
@@ -29,6 +30,7 @@ public class ZkRegistryCenter implements RegistryCenter {
 
     @Override
     public void stop() {
+        System.out.println("====> ZkRegistryCenter closed");
         client.close();
     }
 
@@ -96,5 +98,36 @@ public class ZkRegistryCenter implements RegistryCenter {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    public static void main(String[] args) throws InterruptedException {
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+        CuratorFramework curatorFramework = /*CuratorFrameworkFactory.newClient(
+                "syx.workspace.com:2181,syx.workspace.com:2182,syx.workspace.com:2183",
+                5000,
+                5000,
+                new ExponentialBackoffRetry(1000, 3)
+        );*/
+                CuratorFrameworkFactory.builder()
+                        .connectString("syx.workspace.com:2181,syx.workspace.com:2182,syx.workspace.com:2183")
+                        .connectionTimeoutMs(5000)
+                        .sessionTimeoutMs(5000)
+                        .namespace("test")
+                        .retryPolicy(retryPolicy)
+                        .build();
+        System.out.println("====> curatorFramework start...");
+        curatorFramework.start();
+        System.out.println("====> curatorFramework started finished");
+
+        try {
+            curatorFramework.create().forPath("/syx", "Hello Syx".getBytes());
+            System.out.println("节点创建成功");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        System.out.println("====> curatorFramework close...");
+//        curatorFramework.close();
     }
 }

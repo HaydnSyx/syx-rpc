@@ -22,7 +22,7 @@ Content-Type: application/json
 }
 
 ### 测试getUserList
-POST http://localhost:6080/
+POST http://localhost:6081/
 Content-Type: application/json
 
 {

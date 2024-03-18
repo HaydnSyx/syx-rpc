@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 
@@ -11,16 +12,12 @@ import java.util.List;
 public class TypeUtil {
 
     // 对目标对象按照指定Class类型转换
-    public static Object castV1(Object obj, Class<?> clazz) {
-        if (obj == null || clazz == null) {
+    public static Object castV1(Object obj, Type type) {
+        if (obj == null || type == null) {
             return null;
         }
-        Class<?> objClass = obj.getClass();
-        if (clazz.isAssignableFrom(objClass)) {
-            return obj;
-        }
 
-        return JSON.to(clazz, JSON.toJSONString(obj));
+        return JSON.parseObject(JSON.toJSONString(obj), type);
     }
 
     public static Object castV2(Object origin, Class<?> clazz) {

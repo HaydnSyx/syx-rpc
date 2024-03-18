@@ -20,6 +20,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,7 @@ public class ProviderBootstrap implements ApplicationContextAware {
     @PreDestroy
     public void stop() {
         PROVIDER_MAP.keySet().forEach(this::unregisterService);
+        this.context.getBean(RegistryCenter.class).stop();
     }
 
     private void getInterface(Object o) {
@@ -127,7 +129,8 @@ public class ProviderBootstrap implements ApplicationContextAware {
 
     private static void castArgs(Object[] args, Method metaMethod) {
         if (args != null && args.length > 0) {
-            Class<?>[] parameterTypes = metaMethod.getParameterTypes();
+//            Class<?>[] parameterTypes = metaMethod.getParameterTypes();
+            Type[] parameterTypes = metaMethod.getGenericParameterTypes();
             for (int i = 0; i < args.length; i++) {
                 Object cast = TypeUtil.castV1(args[i], parameterTypes[i]);
                 args[i] = cast;

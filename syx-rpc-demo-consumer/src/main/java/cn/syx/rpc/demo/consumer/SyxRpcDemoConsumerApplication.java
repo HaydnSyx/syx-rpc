@@ -49,7 +49,7 @@ public class SyxRpcDemoConsumerApplication {
             User user = userService.findById(100);
             System.out.println("getUser(100) =====> " + user);
 
-            /*int num = demoService.aaa();
+            int num = demoService.aaa();
             System.out.println("aaa() =====> " + num);
 
             num = demoService.aaa(10);
@@ -71,12 +71,12 @@ public class SyxRpcDemoConsumerApplication {
             demoService.bbb("syx");
 
             cn.syx.rpc.demo.api.Order order = orderService.findById(1L);
-            System.out.println("getOrder(1) =====> " + order);*/
+            System.out.println("getOrder(1) =====> " + order);
 
 //            order = orderService.findById(404L);
 //            System.out.println("getOrder(404) =====> " + order);
 
-            /*User user2 = userService.findById(100);
+            User user2 = userService.findById(100);
             System.out.println("findById(100) =====> " + user2);
 
             user2.setId(200);
@@ -93,12 +93,12 @@ public class SyxRpcDemoConsumerApplication {
             System.out.println("jjj(100) =====> " + JSON.toJSONString(jjj));
 
             long[] kkk = demoService.kkk();
-            System.out.println("kkk() =====> " + JSON.toJSONString(kkk));*/
+            System.out.println("kkk() =====> " + JSON.toJSONString(kkk));
 
 //            int[] mmm = demoService.mmm(new int[]{1, 1, 2, 2, 3, 3});
 //            System.out.println("mmm([1,1,2,2,3,3]) =====> " + JSON.toJSONString(mmm));
 
-            /*List<User> userList1 = Arrays.asList(
+            List<User> userList1 = Arrays.asList(
                     new User(1, "name1"),
                     new User(2, "name2"),
                     new User(3, "name3")
@@ -111,10 +111,10 @@ public class SyxRpcDemoConsumerApplication {
                     "9", new User(9, "name9")
             );
             Map<String, User> userMap2 = userService.getUserMap(userMap1);
-            System.out.println("getUserMap =====> " + JSON.toJSONString(userMap2));*/
+            System.out.println("getUserMap =====> " + JSON.toJSONString(userMap2));
 
-//            Map<String, User> userMap3 = userService.userListToMap(userList1);
-//            System.out.println("userListToMap =====> " + JSON.toJSONString(userMap3));
+            Map<String, User> userMap3 = userService.userListToMap(userList1);
+            System.out.println("userListToMap =====> " + JSON.toJSONString(userMap3));
         };
     }
 }

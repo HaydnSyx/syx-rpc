@@ -57,10 +57,10 @@ public class SyxInvokerHandler implements InvocationHandler {
 
         RpcResponse<?> response = post(request, provider);
         if (response.isStatus()) {
-            Class<?> type = method.getReturnType();
             Object data = response.getData();
-//            return TypeUtil.castV1(data, type);
-            return castObject(method, data, type);
+            Type type = method.getGenericReturnType();
+            return TypeUtil.castV1(data, type);
+//            return castObject(method, data);
         }
 
         Exception ex = response.getEx();
@@ -68,7 +68,8 @@ public class SyxInvokerHandler implements InvocationHandler {
     }
 
     @Nullable
-    private static Object castObject(Method method, Object data, Class<?> type) {
+    private static Object castObject(Method method, Object data) {
+        Class<?> type = method.getReturnType();
         if (data instanceof JSONObject jsonResult) {
             if (Map.class.isAssignableFrom(type)) {
                 Map resultMap = new HashMap();
