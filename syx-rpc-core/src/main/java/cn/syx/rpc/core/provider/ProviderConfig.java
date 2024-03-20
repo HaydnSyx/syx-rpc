@@ -1,7 +1,7 @@
 package cn.syx.rpc.core.provider;
 
 import cn.syx.rpc.core.api.RegistryCenter;
-import cn.syx.rpc.core.registry.ZkRegistryCenter;
+import cn.syx.rpc.core.registry.zk.ZkRegistryCenter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;

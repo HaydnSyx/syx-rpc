@@ -7,7 +7,6 @@ import cn.syx.rpc.core.consumer.http.OkHttpInvoker;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
 import cn.syx.rpc.core.utils.TypeUtil;
-import com.alibaba.fastjson2.JSON;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

@@ -8,7 +8,9 @@ import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import lombok.Getter;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -42,16 +44,12 @@ public class ProviderBootstrap implements ApplicationContextAware {
     @Value("${app.version}")
     private String version;
 
-    private MultiValueMap<String, ProviderMeta> skeletonMap = new LinkedMultiValueMap<>();
+    @Getter
+    private final MultiValueMap<String, ProviderMeta> skeletonMap = new LinkedMultiValueMap<>();
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@NotNull ApplicationContext applicationContext) throws BeansException {
         this.context = applicationContext;
-    }
-
-
-    public MultiValueMap<String, ProviderMeta> getSkeletonMap() {
-        return skeletonMap;
     }
 
     @PostConstruct

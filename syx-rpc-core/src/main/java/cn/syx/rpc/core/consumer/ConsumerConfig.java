@@ -4,15 +4,13 @@ import cn.syx.rpc.core.api.LoadBalancer;
 import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.api.Router;
 import cn.syx.rpc.core.cluster.RoundRibbonLoadBalancer;
-import cn.syx.rpc.core.registry.ZkRegistryCenter;
+import cn.syx.rpc.core.meta.InstanceMeta;
+import cn.syx.rpc.core.registry.zk.ZkRegistryCenter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-
-import java.util.List;
 
 @Configuration
 public class ConsumerConfig {
@@ -29,14 +27,12 @@ public class ConsumerConfig {
     }
 
     @Bean
-    public LoadBalancer loadBalancer() {
-//        return LoadBalancer.DEFAULT;
-//        return new RandomLoadBalancer();
-        return new RoundRibbonLoadBalancer();
+    public LoadBalancer<InstanceMeta> loadBalancer() {
+        return new RoundRibbonLoadBalancer<>();
     }
 
     @Bean
-    public Router router() {
+    public Router<InstanceMeta> router() {
         return Router.DEFAULT;
     }
 

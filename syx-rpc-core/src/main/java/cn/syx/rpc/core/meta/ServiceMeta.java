@@ -20,7 +20,7 @@ public class ServiceMeta {
     private String namespace;
     private String env;
     private String name;
-    private String version = "1.0.0";
+    private String version;
 
     public String toPath() {
         return String.format("%s_%s_%s_%s_%s", app, namespace, env, name, version);

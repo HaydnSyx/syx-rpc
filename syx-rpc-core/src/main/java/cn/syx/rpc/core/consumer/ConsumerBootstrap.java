@@ -9,12 +9,11 @@ import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
 import com.alibaba.fastjson2.JSON;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
@@ -22,13 +21,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
-public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAware {
+public class ConsumerBootstrap implements ApplicationContextAware {
 
     private ApplicationContext context;
-
-    private Environment env;
 
     @Value("${app.id}")
     private String app;
@@ -42,16 +38,11 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
     @Value("${app.version}")
     private String version;
 
-    private Map<String, Object> STUB_MAP = new HashMap<>();
+    private final Map<String, Object> STUB_MAP = new HashMap<>();
 
     @Override
-    public void setApplicationContext(ApplicationContext context) throws BeansException {
+    public void setApplicationContext(@NotNull ApplicationContext context) throws BeansException {
         this.context = context;
-    }
-
-    @Override
-    public void setEnvironment(Environment environment) {
-        this.env = environment;
     }
 
     public void start() {
@@ -81,7 +72,7 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
                     e.setAccessible(true);
                     e.set(bean, consumer);
                 } catch (IllegalAccessException ex) {
-                    ex.printStackTrace();
+                    throw new RuntimeException(ex);
                 }
             });
         }

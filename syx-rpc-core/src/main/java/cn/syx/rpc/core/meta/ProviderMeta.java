@@ -9,6 +9,5 @@ public class ProviderMeta {
 
     private Method method;
     private String methodSign;
-
     private Object service;
 }
