@@ -1,7 +1,6 @@
 package cn.syx.rpc.core.provider;
 
 import cn.syx.rpc.core.api.RegistryCenter;
-import cn.syx.rpc.core.consumer.ConsumerBootstrap;
 import cn.syx.rpc.core.registry.ZkRegistryCenter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
@@ -17,7 +16,12 @@ public class ProviderConfig {
         return new ProviderBootstrap();
     }
 
-    @Bean(initMethod = "start")
+    @Bean
+    public ProviderInvoker providerInvoker(@Autowired ProviderBootstrap providerBootstrap) {
+        return new ProviderInvoker(providerBootstrap);
+    }
+
+    @Bean
     public RegistryCenter providerRegistryCenter() {
         return new ZkRegistryCenter();
     }

@@ -30,20 +30,28 @@ public class ProviderBootstrap implements ApplicationContextAware {
 
     private ApplicationContext context;
 
+    private RegistryCenter registryCenter;
+
     private String instance;
     @Value("${server.port}")
     private int port;
 
-    private MultiValueMap<String, ProviderMeta> PROVIDER_MAP = new LinkedMultiValueMap<>();
+    private MultiValueMap<String, ProviderMeta> skeletonMap = new LinkedMultiValueMap<>();
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.context = applicationContext;
     }
 
+
+    public MultiValueMap<String, ProviderMeta> getSkeletonMap() {
+        return skeletonMap;
+    }
+
     @PostConstruct
     public void init() {
         Map<String, Object> beans = context.getBeansWithAnnotation(SyxProvider.class);
+        this.registryCenter = context.getBean(RegistryCenter.class);
         beans.values().forEach(this::getInterface);
     }
 
@@ -51,13 +59,14 @@ public class ProviderBootstrap implements ApplicationContextAware {
     public void start() {
         String ip = InetAddress.getLocalHost().getHostAddress();
         this.instance = ip + "_" + port;
-        PROVIDER_MAP.keySet().forEach(this::registerService);
+        this.registryCenter.start();
+        skeletonMap.keySet().forEach(this::registerService);
     }
 
     @PreDestroy
     public void stop() {
-        PROVIDER_MAP.keySet().forEach(this::unregisterService);
-        this.context.getBean(RegistryCenter.class).stop();
+        skeletonMap.keySet().forEach(this::unregisterService);
+        this.registryCenter.stop();
     }
 
     private void getInterface(Object o) {
@@ -77,8 +86,7 @@ public class ProviderBootstrap implements ApplicationContextAware {
         providerMeta.setMethod(method);
         providerMeta.setMethodSign(MethodUtil.generateMethodSign(method));
         providerMeta.setService(service);
-        PROVIDER_MAP.add(cls.getCanonicalName(), providerMeta);
-//        System.out.println("provider register ======> " + cls.getCanonicalName() + " : " + providerMeta.getMethodSign());
+        skeletonMap.add(cls.getCanonicalName(), providerMeta);
     }
 
     private void registerService(String service) {
@@ -89,61 +97,5 @@ public class ProviderBootstrap implements ApplicationContextAware {
     private void unregisterService(String service) {
         RegistryCenter registryCenter = context.getBean(RegistryCenter.class);
         registryCenter.unregister(service, this.instance);
-    }
-
-    public RpcResponse<Object> invokerRequest(RpcRequest request) {
-        String service = request.getService();
-        Object[] args = request.getArgs();
-        String methodSign = request.getMethodSign();
-
-        System.out.println("consumer request ======> " + JSON.toJSONString(request));
-
-        String method = methodSign.split("\\(")[0];
-        if (MethodUtil.isLocalMethod(method)) {
-            return null;
-        }
-
-        List<ProviderMeta> metas = PROVIDER_MAP.get(service);
-        try {
-            if (Objects.isNull(metas) || metas.isEmpty()) {
-                throw new RuntimeException("未发现提供方");
-            }
-
-            ProviderMeta providerMeta= findProviderMeta(metas, methodSign);
-            if (Objects.isNull(providerMeta)) {
-                throw new RuntimeException("未匹配到合适方法");
-            }
-
-            Method metaMethod = providerMeta.getMethod();
-            castArgs(args, metaMethod);
-            Object data = metaMethod.invoke(providerMeta.getService(), args);
-            return new RpcResponse<>(true, data, null);
-        } catch (RuntimeException e) {
-            return new RpcResponse<>(false, null, e);
-        } catch (InvocationTargetException e) {
-            return new RpcResponse<>(false, null, new RuntimeException(e.getTargetException().getMessage()));
-        } catch (IllegalAccessException e) {
-            return new RpcResponse<>(false, null, new RuntimeException(e.getMessage()));
-        }
-    }
-
-    private static void castArgs(Object[] args, Method metaMethod) {
-        if (args != null && args.length > 0) {
-//            Class<?>[] parameterTypes = metaMethod.getParameterTypes();
-            Type[] parameterTypes = metaMethod.getGenericParameterTypes();
-            for (int i = 0; i < args.length; i++) {
-                Object cast = TypeUtil.castV1(args[i], parameterTypes[i]);
-                args[i] = cast;
-            }
-        }
-    }
-
-    private ProviderMeta findProviderMeta(List<ProviderMeta> metas, String methodSign) {
-        for (ProviderMeta meta : metas) {
-            if (meta.getMethodSign().equals(methodSign)) {
-                return meta;
-            }
-        }
-        return null;
     }
 }

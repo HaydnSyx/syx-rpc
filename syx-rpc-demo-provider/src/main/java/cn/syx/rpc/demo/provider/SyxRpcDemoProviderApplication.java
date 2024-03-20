@@ -4,6 +4,7 @@ import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
 import cn.syx.rpc.core.provider.ProviderBootstrap;
 import cn.syx.rpc.core.provider.ProviderConfig;
+import cn.syx.rpc.core.provider.ProviderInvoker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,11 +23,11 @@ public class SyxRpcDemoProviderApplication {
     }
 
     @Autowired
-    private ProviderBootstrap bootstrap;
+    private ProviderInvoker invoker;
 
     @RequestMapping("/")
     public RpcResponse<?> invoker(@RequestBody RpcRequest request) {
-        return bootstrap.invokerRequest(request);
+        return invoker.invokerRequest(request);
     }
 
     /*@Bean
