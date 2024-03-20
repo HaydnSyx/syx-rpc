@@ -17,9 +17,6 @@ import java.util.List;
 @Configuration
 public class ConsumerConfig {
 
-    @Value("${syxrpc.providers:}")
-    private String providerUrls;
-
     @Bean
     public ConsumerBootstrap createConsumerBootstrap() {
         return new ConsumerBootstrap();

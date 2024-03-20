@@ -1,5 +1,6 @@
 package cn.syx.rpc.core.api;
 
+import cn.syx.rpc.core.meta.InstanceMeta;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,6 @@ import java.util.List;
 public class RpcContext {
 
     private List<Filter> filters;
-    private Router router;
-    private LoadBalancer loadBalancer;
+    private Router<InstanceMeta> router;
+    private LoadBalancer<InstanceMeta> loadBalancer;
 }

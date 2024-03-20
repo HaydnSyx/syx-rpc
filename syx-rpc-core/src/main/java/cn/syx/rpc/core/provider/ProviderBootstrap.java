@@ -2,12 +2,10 @@ package cn.syx.rpc.core.provider;
 
 import cn.syx.rpc.core.annotation.SyxProvider;
 import cn.syx.rpc.core.api.RegistryCenter;
-import cn.syx.rpc.core.api.RpcRequest;
-import cn.syx.rpc.core.api.RpcResponse;
+import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.meta.ProviderMeta;
+import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
-import cn.syx.rpc.core.utils.TypeUtil;
-import com.alibaba.fastjson2.JSON;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.SneakyThrows;
@@ -18,13 +16,9 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.net.InetAddress;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class ProviderBootstrap implements ApplicationContextAware {
 
@@ -32,9 +26,21 @@ public class ProviderBootstrap implements ApplicationContextAware {
 
     private RegistryCenter registryCenter;
 
-    private String instance;
+    private InstanceMeta instance;
     @Value("${server.port}")
     private int port;
+
+    @Value("${app.id}")
+    private String app;
+
+    @Value("${app.namespace}")
+    private String namespace;
+
+    @Value("${app.env}")
+    private String env;
+
+    @Value("${app.version}")
+    private String version;
 
     private MultiValueMap<String, ProviderMeta> skeletonMap = new LinkedMultiValueMap<>();
 
@@ -58,7 +64,7 @@ public class ProviderBootstrap implements ApplicationContextAware {
     @SneakyThrows
     public void start() {
         String ip = InetAddress.getLocalHost().getHostAddress();
-        this.instance = ip + "_" + port;
+        this.instance = InstanceMeta.http(ip, port);
         this.registryCenter.start();
         skeletonMap.keySet().forEach(this::registerService);
     }
@@ -90,12 +96,24 @@ public class ProviderBootstrap implements ApplicationContextAware {
     }
 
     private void registerService(String service) {
-        RegistryCenter registryCenter = context.getBean(RegistryCenter.class);
-        registryCenter.register(service, this.instance);
+        ServiceMeta serviceMeta = ServiceMeta.builder()
+                .app(app)
+                .namespace(namespace)
+                .env(env)
+                .name(service)
+                .version(version)
+                .build();
+        this.registryCenter.register(serviceMeta, this.instance);
     }
 
     private void unregisterService(String service) {
-        RegistryCenter registryCenter = context.getBean(RegistryCenter.class);
-        registryCenter.unregister(service, this.instance);
+        ServiceMeta serviceMeta = ServiceMeta.builder()
+                .app(app)
+                .namespace(namespace)
+                .env(env)
+                .name(service)
+                .version(version)
+                .build();
+        this.registryCenter.unregister(serviceMeta, this.instance);
     }
 }

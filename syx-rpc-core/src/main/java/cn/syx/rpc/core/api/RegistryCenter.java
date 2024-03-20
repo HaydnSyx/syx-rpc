@@ -1,7 +1,10 @@
 package cn.syx.rpc.core.api;
 
+import cn.syx.rpc.core.meta.InstanceMeta;
+import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.registry.ChangeListener;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public interface RegistryCenter {
@@ -10,13 +13,13 @@ public interface RegistryCenter {
 
     void stop();
 
-    void register(String service, String instance);
+    void register(ServiceMeta service, InstanceMeta instance);
 
-    void unregister(String service, String instance);
+    void unregister(ServiceMeta service, InstanceMeta instance);
 
-    List<String> fetchAll(String serviceName);
+    List<InstanceMeta> fetchAll(ServiceMeta service);
 
-    void subscribe(String service, ChangeListener listener);
+    void subscribe(ServiceMeta service, ChangeListener listener);
 
     class StaticRegistryCenter implements RegistryCenter {
 
@@ -37,22 +40,22 @@ public interface RegistryCenter {
         }
 
         @Override
-        public void register(String service, String instance) {
+        public void register(ServiceMeta service, InstanceMeta instance) {
             // do nothing
         }
 
         @Override
-        public void unregister(String service, String instance) {
+        public void unregister(ServiceMeta service, InstanceMeta instance) {
             // do nothing
         }
 
         @Override
-        public List<String> fetchAll(String serviceName) {
-            return this.providers;
+        public List<InstanceMeta> fetchAll(ServiceMeta service) {
+            return new ArrayList<>();
         }
 
         @Override
-        public void subscribe(String service, ChangeListener listener) {
+        public void subscribe(ServiceMeta service, ChangeListener listener) {
             // do nothing
         }
     }

@@ -1,6 +1,11 @@
 package cn.syx.rpc.core.utils;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class MethodUtil {
 
@@ -31,5 +36,23 @@ public class MethodUtil {
         }
         sb.append(")");
         return sb.toString();
+    }
+
+    public static List<Field> findAnnotationField(Class<?> cls, Class<? extends Annotation> annotationCls) {
+        List<Field> result = new ArrayList<>();
+        while (cls != null) {
+            Field[] fields = cls.getDeclaredFields();
+            if (fields.length == 0) {
+                cls = cls.getSuperclass();
+                continue;
+            }
+
+            result.addAll(Arrays.stream(fields)
+                    .filter(e -> e.isAnnotationPresent(annotationCls))
+                    .toList());
+            cls = cls.getSuperclass();
+        }
+
+        return result;
     }
 }

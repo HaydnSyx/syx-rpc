@@ -49,7 +49,7 @@ public class SyxRpcDemoConsumerApplication {
             User user = userService.findById(100);
             System.out.println("getUser(100) =====> " + user);
 
-            int num = demoService.aaa();
+            /*int num = demoService.aaa();
             System.out.println("aaa() =====> " + num);
 
             num = demoService.aaa(10);
@@ -114,7 +114,7 @@ public class SyxRpcDemoConsumerApplication {
             System.out.println("getUserMap =====> " + JSON.toJSONString(userMap2));
 
             Map<String, User> userMap3 = userService.userListToMap(userList1);
-            System.out.println("userListToMap =====> " + JSON.toJSONString(userMap3));
+            System.out.println("userListToMap =====> " + JSON.toJSONString(userMap3));*/
         };
     }
 }
