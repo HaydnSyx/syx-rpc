@@ -5,6 +5,7 @@ import cn.syx.rpc.core.api.RpcResponse;
 import cn.syx.rpc.core.provider.ProviderBootstrap;
 import cn.syx.rpc.core.provider.ProviderConfig;
 import cn.syx.rpc.core.provider.ProviderInvoker;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @SpringBootApplication
 @RestController
 @Import({ProviderConfig.class})
@@ -38,7 +40,7 @@ public class SyxRpcDemoProviderApplication {
             req.setMethod("findById");
             req.setArgs(new Object[]{100});
 
-            System.out.println("result: " + bootstrap.invokerRequest(req));
+            log.info("result: " + bootstrap.invokerRequest(req));
         };
     }*/
 }

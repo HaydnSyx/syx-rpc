@@ -6,6 +6,7 @@ import cn.syx.rpc.core.meta.ProviderMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
 import cn.syx.rpc.core.utils.TypeUtil;
 import com.alibaba.fastjson2.JSON;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.MultiValueMap;
 
 import java.lang.reflect.InvocationTargetException;
@@ -14,6 +15,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 public class ProviderInvoker {
 
     private final MultiValueMap<String, ProviderMeta> PROVIDER_MAP;
@@ -27,7 +29,7 @@ public class ProviderInvoker {
         Object[] args = request.getArgs();
         String methodSign = request.getMethodSign();
 
-        System.out.println("consumer request ======> " + JSON.toJSONString(request));
+        log.debug("consumer request ======> {}", JSON.toJSONString(request));
 
         String method = methodSign.split("\\(")[0];
         if (MethodUtil.isLocalMethod(method)) {

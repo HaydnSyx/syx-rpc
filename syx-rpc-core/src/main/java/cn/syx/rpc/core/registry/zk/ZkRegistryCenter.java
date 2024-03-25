@@ -5,6 +5,7 @@ import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.registry.ChangeListener;
 import cn.syx.rpc.core.registry.Event;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class ZkRegistryCenter implements RegistryCenter {
 
     private CuratorFramework client = null;
@@ -35,13 +37,13 @@ public class ZkRegistryCenter implements RegistryCenter {
                 .namespace(zkRoot)
                 .retryPolicy(retryPolicy)
                 .build();
-        System.out.println("====> ZkRegistryCenter started, services: " + zkServices + ", root: " + zkRoot);
+        log.info("====> ZkRegistryCenter started, services: " + zkServices + ", root: " + zkRoot);
         client.start();
     }
 
     @Override
     public void stop() {
-        System.out.println("====> ZkRegistryCenter closed");
+        log.info("====> ZkRegistryCenter closed");
         client.close();
     }
 
@@ -56,7 +58,7 @@ public class ZkRegistryCenter implements RegistryCenter {
 
             // 创建实例的临时节点
             String instancePath = servicePath + "/" + instance.toPath();
-            System.out.println("====> to register service: " + service + ", instance: " + instance);
+            log.info("====> to register service: " + service + ", instance: " + instance);
             client.create().withMode(CreateMode.EPHEMERAL).forPath(instancePath, "provider".getBytes());
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -74,7 +76,7 @@ public class ZkRegistryCenter implements RegistryCenter {
 
             // 删除实例的临时节点
             String instancePath = servicePath + "/" + instance.toPath();
-            System.out.println("====> to unregister service: " + service + ", instance: " + instance);
+            log.info("====> to unregister service: " + service + ", instance: " + instance);
             client.delete().quietly().forPath(instancePath);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -86,7 +88,7 @@ public class ZkRegistryCenter implements RegistryCenter {
         String servicePath = "/" + serviceName.toPath();
         try {
             List<String> nodes = client.getChildren().forPath(servicePath);
-//            System.out.println("====> fetchAll service: " + serviceName + ", nodes: " + JSON.toJSON(nodes));
+//            log.info("====> fetchAll service: " + serviceName + ", nodes: " + JSON.toJSON(nodes));
             return nodes.stream().map(InstanceMeta::http).collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -102,7 +104,7 @@ public class ZkRegistryCenter implements RegistryCenter {
         try {
             cache.start();
             cache.getListenable().addListener((cl, event) -> {
-//                System.out.println("====> subscribe event: " + event);
+//                log.info("====> subscribe event: " + event);
                 List<InstanceMeta> nodes = fetchAll(service);
                 listener.fire(new Event(nodes));
             });
@@ -121,18 +123,18 @@ public class ZkRegistryCenter implements RegistryCenter {
                 .namespace("test")
                 .retryPolicy(retryPolicy)
                 .build();
-        System.out.println("====> curatorFramework start...");
+        log.info("====> curatorFramework start...");
         curatorFramework.start();
-        System.out.println("====> curatorFramework started finished");
+        log.info("====> curatorFramework started finished");
 
         try {
             curatorFramework.create().forPath("/syx", "Hello Syx".getBytes());
-            System.out.println("节点创建成功");
+            log.info("节点创建成功");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        System.out.println("====> curatorFramework close...");
+        log.info("====> curatorFramework close...");
 //        curatorFramework.close();
     }
 }

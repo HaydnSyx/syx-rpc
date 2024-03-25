@@ -4,11 +4,13 @@ import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
 import cn.syx.rpc.core.consumer.HttpInvoker;
 import com.alibaba.fastjson2.JSON;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class OkHttpInvoker implements HttpInvoker {
 
     private static final MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
@@ -40,7 +42,7 @@ public class OkHttpInvoker implements HttpInvoker {
             }
 
             String data = responseBody.string();
-            System.out.println("provider response ======> " + data);
+            log.debug("provider response ======> {}", data);
             return JSON.parseObject(data, RpcResponse.class);
         } catch (Exception e) {
             return new RpcResponse<>(false, null, e);

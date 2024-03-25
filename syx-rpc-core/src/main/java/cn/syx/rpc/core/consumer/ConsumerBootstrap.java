@@ -9,6 +9,7 @@ import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
 import com.alibaba.fastjson2.JSON;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+@Slf4j
 public class ConsumerBootstrap implements ApplicationContextAware {
 
     private ApplicationContext context;
@@ -87,7 +89,7 @@ public class ConsumerBootstrap implements ApplicationContextAware {
                 .version(version)
                 .build();
         final List<InstanceMeta> providers = rc.fetchAll(serviceMeta);
-        System.out.println("real providers ======> " + JSON.toJSON(providers));
+        log.info("real providers ======> {}", JSON.toJSON(providers));
         // 订阅服务
         rc.subscribe(serviceMeta, event -> {
             providers.clear();

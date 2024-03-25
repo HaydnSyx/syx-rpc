@@ -3,6 +3,7 @@ package cn.syx.rpc.core.utils;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -10,7 +11,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 
-
+@Slf4j
 public class TypeUtil {
 
     // 对目标对象按照指定Class类型转换
@@ -84,12 +85,12 @@ public class TypeUtil {
             if (Map.class.isAssignableFrom(type)) {
                 Map resultMap = new HashMap();
                 Type genericReturnType = method.getGenericReturnType();
-                System.out.println(genericReturnType);
+                log.debug(genericReturnType.toString());
                 if (genericReturnType instanceof ParameterizedType parameterizedType) {
                     Class<?> keyType = (Class<?>) parameterizedType.getActualTypeArguments()[0];
                     Class<?> valueType = (Class<?>) parameterizedType.getActualTypeArguments()[1];
-                    System.out.println("keyType  : " + keyType);
-                    System.out.println("valueType: " + valueType);
+                    log.debug("keyType  : " + keyType);
+                    log.debug("valueType: " + valueType);
                     jsonResult.entrySet().stream().forEach(
                             e -> {
                                 Object key = TypeUtil.castV2(e.getKey(), keyType);
@@ -113,10 +114,10 @@ public class TypeUtil {
             } else if (List.class.isAssignableFrom(type)) {
                 List<Object> resultList = new ArrayList<>(array.length);
                 Type genericReturnType = method.getGenericReturnType();
-                System.out.println(genericReturnType);
+                log.debug(genericReturnType.toString());
                 if (genericReturnType instanceof ParameterizedType parameterizedType) {
                     Type actualType = parameterizedType.getActualTypeArguments()[0];
-                    System.out.println(actualType);
+                    log.debug(actualType.toString());
                     for (Object o : array) {
                         resultList.add(TypeUtil.castV2(o, (Class<?>) actualType));
                     }

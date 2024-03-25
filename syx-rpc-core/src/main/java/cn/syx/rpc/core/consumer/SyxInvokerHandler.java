@@ -7,12 +7,14 @@ import cn.syx.rpc.core.consumer.http.OkHttpInvoker;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
 import cn.syx.rpc.core.utils.TypeUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.List;
 
+@Slf4j
 public class SyxInvokerHandler implements InvocationHandler {
 
     private final Class<?> cls;
@@ -44,7 +46,7 @@ public class SyxInvokerHandler implements InvocationHandler {
         // 获取服务提供者
         List<InstanceMeta> instances = rpcContext.getRouter().route(providerList);
         InstanceMeta instance = rpcContext.getLoadBalancer().choose(instances);
-        System.out.println("real provider ======> " + instance);
+        log.debug("real provider ======> {}", instance);
 
         RpcResponse<?> response = invoker.post(request, instance.toUrl());
         if (response.isStatus()) {

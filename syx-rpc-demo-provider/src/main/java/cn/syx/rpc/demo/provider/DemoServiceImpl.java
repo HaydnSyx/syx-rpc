@@ -3,8 +3,10 @@ package cn.syx.rpc.demo.provider;
 import cn.syx.rpc.core.annotation.SyxProvider;
 import cn.syx.rpc.demo.api.DemoService;
 import cn.syx.rpc.demo.api.User;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @SyxProvider
 public class DemoServiceImpl implements DemoService {
@@ -16,25 +18,25 @@ public class DemoServiceImpl implements DemoService {
 
     @Override
     public int aaa(int id) {
-        System.out.println("进入aaa(int id)方法中: param=" + id);
+        log.debug("进入aaa(int id)方法中: param=" + id);
         return 777;
     }
 
     @Override
     public int aaa(int id, String name) {
-        System.out.println("进入aaa(int id String name)方法中: param=" + id + ", " + name);
+        log.debug("进入aaa(int id String name)方法中: param=" + id + ", " + name);
         return 789;
     }
 
     @Override
     public int aaa(Integer id) {
-        System.out.println("进入aaa(Integer id)方法中: param=" + id);
+        log.debug("进入aaa(Integer id)方法中: param=" + id);
         return 888;
     }
 
     @Override
     public int aaa(User user) {
-        System.out.println("进入aaa(User user)方法中: param=" + user);
+        log.debug("进入aaa(User user)方法中: param=" + user);
         return 999;
     }
 
@@ -45,7 +47,7 @@ public class DemoServiceImpl implements DemoService {
 
     @Override
     public void bbb(String name) {
-        System.out.println("bbb: " + name);
+        log.debug("bbb: " + name);
     }
 
     @Override
@@ -97,7 +99,7 @@ public class DemoServiceImpl implements DemoService {
 
     @Override
     public int[] jjj(int id) {
-        System.out.println("jjj: " + id);
+        log.debug("jjj: " + id);
         return new int[]{1, 2, 3, 4, 5};
     }
 
