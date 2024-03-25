@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class MethodUtil {
 
@@ -36,6 +37,20 @@ public class MethodUtil {
         }
         sb.append(")");
         return sb.toString();
+    }
+
+    public static Method findMethodByMethodSign(Method[] methods, String methodSign) {
+        for (Method method : methods) {
+            if (MethodUtil.isLocalMethod(method)) {
+                continue;
+            }
+
+            String sign = MethodUtil.generateMethodSign(method);
+            if (Objects.equals(sign, methodSign)) {
+                return method;
+            }
+        }
+        return null;
     }
 
     public static List<Field> findAnnotationField(Class<?> cls, Class<? extends Annotation> annotationCls) {

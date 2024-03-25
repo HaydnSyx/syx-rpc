@@ -1,10 +1,7 @@
 package cn.syx.rpc.core.consumer;
 
 import cn.syx.rpc.core.annotation.SyxConsumer;
-import cn.syx.rpc.core.api.LoadBalancer;
-import cn.syx.rpc.core.api.RegistryCenter;
-import cn.syx.rpc.core.api.Router;
-import cn.syx.rpc.core.api.RpcContext;
+import cn.syx.rpc.core.api.*;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
@@ -48,10 +45,12 @@ public class ConsumerBootstrap implements ApplicationContextAware {
     }
 
     public void start() {
+        List<Filter> filters = context.getBeansOfType(Filter.class).values().stream().toList();
         Router<InstanceMeta> router = context.getBean(Router.class);
         LoadBalancer<InstanceMeta> loadBalancer = context.getBean(LoadBalancer.class);
         RegistryCenter registryCenter = context.getBean(RegistryCenter.class);
         RpcContext rpcContext = RpcContext.builder()
+                .filters(filters)
                 .router(router)
                 .loadBalancer(loadBalancer)
                 .build();

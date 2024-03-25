@@ -1,5 +1,6 @@
 package cn.syx.rpc.core.consumer;
 
+import cn.syx.rpc.core.api.Filter;
 import cn.syx.rpc.core.api.RpcContext;
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
@@ -8,6 +9,7 @@ import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
 import cn.syx.rpc.core.utils.TypeUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -43,12 +45,37 @@ public class SyxInvokerHandler implements InvocationHandler {
         // 生成方法签名
         request.setMethodSign(MethodUtil.generateMethodSign(method));
 
+        List<Filter> filters = rpcContext.getFilters();
+
+        // 前置过滤处理
+        for (Filter filter : filters) {
+            Object result = filter.preFilter(request);
+            if (result != null) {
+                log.debug("前置过滤处理结果: {}", result);
+                return result;
+            }
+        }
+
         // 获取服务提供者
         List<InstanceMeta> instances = rpcContext.getRouter().route(providerList);
         InstanceMeta instance = rpcContext.getLoadBalancer().choose(instances);
         log.debug("real provider ======> {}", instance);
 
         RpcResponse<?> response = invoker.post(request, instance.toUrl());
+        Object result = castReponse(method, response);
+
+        // 后置过滤处理
+        for (Filter filter : filters) {
+            result = filter.postFilter(request, response, result);
+            log.debug("后置过滤处理结果: {}", response);
+        }
+
+
+        return result;
+    }
+
+    @Nullable
+    private static Object castReponse(Method method, RpcResponse<?> response) {
         if (response.isStatus()) {
             Object data = response.getData();
             Type type = method.getGenericReturnType();
