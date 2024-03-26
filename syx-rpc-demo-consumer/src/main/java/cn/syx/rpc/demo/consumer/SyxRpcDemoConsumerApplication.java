@@ -40,7 +40,7 @@ public class SyxRpcDemoConsumerApplication {
     }
 
     @GetMapping("/")
-    public User findById(@RequestParam int id) {
+    public User findById(@RequestParam("id") int id) {
         return userService.findById(id);
     }
 
