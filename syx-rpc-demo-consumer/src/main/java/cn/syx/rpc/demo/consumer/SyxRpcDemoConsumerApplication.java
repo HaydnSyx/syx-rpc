@@ -39,17 +39,23 @@ public class SyxRpcDemoConsumerApplication {
         SpringApplication.run(SyxRpcDemoConsumerApplication.class, args);
     }
 
-    @GetMapping("/")
+    @GetMapping("/find/id")
     public User findById(@RequestParam("id") int id) {
         return userService.findById(id);
+    }
+
+    @GetMapping("/find/timeout")
+    public User findWithTimeout(@RequestParam("id") int id,
+                         @RequestParam("timeout") int timeout) {
+        return demoService.findWithTimeout(id, timeout);
     }
 
     @Bean
     @Order(Integer.MAX_VALUE)
     public ApplicationRunner consumer_runner() {
         return x -> {
-            User user = userService.findById(100);
-            log.info("getUser(100) =====> " + user);
+//            User user = userService.findById(100);
+//            log.info("getUser(100) =====> " + user);
 
             /*int num = demoService.aaa();
             log.info("aaa() =====> " + num);
@@ -117,6 +123,10 @@ public class SyxRpcDemoConsumerApplication {
 
             Map<String, User> userMap3 = userService.userListToMap(userList1);
             log.info("userListToMap =====> " + JSON.toJSONString(userMap3));*/
+
+//            long start = System.currentTimeMillis();
+//            User user = demoService.findWithTimeout(100, 100);
+//            log.info("findWithTimeout =====> " + user + ", cost: " + (System.currentTimeMillis() - start));
         };
     }
 }

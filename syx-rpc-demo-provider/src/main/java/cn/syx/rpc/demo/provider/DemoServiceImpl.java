@@ -4,12 +4,17 @@ import cn.syx.rpc.core.annotation.SyxProvider;
 import cn.syx.rpc.demo.api.DemoService;
 import cn.syx.rpc.demo.api.User;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 @SyxProvider
 public class DemoServiceImpl implements DemoService {
+
+    @Autowired
+    private Environment environment;
 
     @Override
     public int aaa() {
@@ -111,5 +116,18 @@ public class DemoServiceImpl implements DemoService {
     @Override
     public int[] mmm(int[] a) {
         return a;
+    }
+
+    @Override
+    public User findWithTimeout(int id, int timeout) {
+        String port = environment.getProperty("server.port");
+        if ("6081".equals(port)) {
+            try {
+                Thread.sleep(timeout);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return new User(id, "syx-timeout-" + "-" + environment.getProperty("server.port") + "-" + System.currentTimeMillis());
     }
 }

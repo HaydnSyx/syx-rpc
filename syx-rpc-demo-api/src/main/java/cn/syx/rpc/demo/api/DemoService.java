@@ -36,5 +36,5 @@ public interface DemoService {
 
     int[] mmm(int[] a);
 
-
+    User findWithTimeout(int id, int timeout);
 }

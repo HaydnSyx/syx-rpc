@@ -41,10 +41,10 @@ public class ConsumerConfig {
         return new CacheFilter();
     }*/
 
-    @Bean
+    /*@Bean
     public Filter mockFilter() {
         return new MockFilter();
-    }
+    }*/
 
 
     @Bean
