@@ -12,7 +12,10 @@ Content-Type: application/json
 GET http://localhost:7080/find/id?id=100
 
 ### 获取用户信息-超时
-GET http://localhost:7080/find/timeout?id=100&timeout=1000
+GET http://localhost:7080/find/timeout?id=100&timeout=1100&fireTimeout=false
+
+### 获取用户信息-超时
+GET http://localhost:7080/find/timeout?id=100&timeout=1100&fireTimeout=true
 
 ### 测试demo
 POST http://localhost:6080/

@@ -119,9 +119,9 @@ public class DemoServiceImpl implements DemoService {
     }
 
     @Override
-    public User findWithTimeout(int id, int timeout) {
+    public User findWithTimeout(int id, int timeout, boolean fireTimeout) {
         String port = environment.getProperty("server.port");
-        if ("6081".equals(port)) {
+        if ("6081".equals(port) && fireTimeout) {
             try {
                 Thread.sleep(timeout);
             } catch (InterruptedException e) {

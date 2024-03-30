@@ -46,8 +46,9 @@ public class SyxRpcDemoConsumerApplication {
 
     @GetMapping("/find/timeout")
     public User findWithTimeout(@RequestParam("id") int id,
-                         @RequestParam("timeout") int timeout) {
-        return demoService.findWithTimeout(id, timeout);
+                                @RequestParam("timeout") int timeout,
+                                @RequestParam(value = "fireTimeout", defaultValue = "true") boolean fireTimeout) {
+        return demoService.findWithTimeout(id, timeout, fireTimeout);
     }
 
     @Bean
