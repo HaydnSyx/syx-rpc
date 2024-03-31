@@ -44,6 +44,9 @@ public class ProviderBootstrap implements ApplicationContextAware {
     @Value("${app.version}")
     private String version;
 
+    @Value("#{${app.metas}}")
+    private Map<String, String> metas;
+
     @Getter
     private final MultiValueMap<String, ProviderMeta> skeletonMap = new LinkedMultiValueMap<>();
 
@@ -63,6 +66,7 @@ public class ProviderBootstrap implements ApplicationContextAware {
     public void start() {
         String ip = InetAddress.getLocalHost().getHostAddress();
         this.instance = InstanceMeta.http(ip, port);
+        this.instance.getParameters().putAll(metas);
         this.registryCenter.start();
         skeletonMap.keySet().forEach(this::registerService);
     }

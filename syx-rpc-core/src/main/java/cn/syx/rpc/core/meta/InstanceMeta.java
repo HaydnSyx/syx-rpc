@@ -1,7 +1,9 @@
 package cn.syx.rpc.core.meta;
 
+import com.alibaba.fastjson2.JSON;
 import lombok.Data;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -13,7 +15,7 @@ public class InstanceMeta {
     private String context;
 
     private boolean status;// online or offline
-    private Map<String, String> parameters;
+    private Map<String, String> parameters = new HashMap<>();
 
     public String toPath() {
         return String.format("%s_%d", host, port);
@@ -35,5 +37,9 @@ public class InstanceMeta {
 
     public String toUrl() {
         return String.format("%s://%s:%d/%s", schema, host, port, context);
+    }
+
+    public String toMetas() {
+        return JSON.toJSONString(parameters);
     }
 }

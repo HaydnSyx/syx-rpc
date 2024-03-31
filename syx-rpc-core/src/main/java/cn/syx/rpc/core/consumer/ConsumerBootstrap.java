@@ -37,6 +37,9 @@ public class ConsumerBootstrap implements ApplicationContextAware {
     @Value("${app.version}")
     private String version;
 
+    @Value("${app.grayRatio:100}")
+    private int grayRatio;
+
     private final Map<String, Object> STUB_MAP = new HashMap<>();
 
     @Override
@@ -54,6 +57,7 @@ public class ConsumerBootstrap implements ApplicationContextAware {
                 .router(router)
                 .loadBalancer(loadBalancer)
                 .build();
+//        rpcContext.getParams().put("grayRatio", String.valueOf(grayRatio));
 
         String[] names = context.getBeanDefinitionNames();
         for (String name : names) {

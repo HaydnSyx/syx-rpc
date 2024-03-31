@@ -4,12 +4,14 @@ import cn.syx.rpc.core.api.Filter;
 import cn.syx.rpc.core.api.LoadBalancer;
 import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.api.Router;
+import cn.syx.rpc.core.cluster.GrayRouter;
 import cn.syx.rpc.core.cluster.RoundRibbonLoadBalancer;
 import cn.syx.rpc.core.filter.CacheFilter;
 import cn.syx.rpc.core.filter.MockFilter;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.registry.zk.ZkRegistryCenter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +21,9 @@ import java.util.List;
 
 @Configuration
 public class ConsumerConfig {
+
+    @Value("${app.grayRatio:100}")
+    private int grayRatio;
 
     @Bean
     public ConsumerBootstrap createConsumerBootstrap() {
@@ -54,7 +59,7 @@ public class ConsumerConfig {
 
     @Bean
     public Router<InstanceMeta> router() {
-        return Router.DEFAULT;
+        return new GrayRouter(grayRatio);
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")

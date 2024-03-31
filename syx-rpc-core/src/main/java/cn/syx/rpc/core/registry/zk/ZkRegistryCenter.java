@@ -5,6 +5,7 @@ import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.registry.ChangeListener;
 import cn.syx.rpc.core.registry.Event;
+import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -14,6 +15,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,13 +55,13 @@ public class ZkRegistryCenter implements RegistryCenter {
         try {
             // 创建服务的持久节点
             if (client.checkExists().forPath(servicePath) == null) {
-                client.create().withMode(CreateMode.PERSISTENT).forPath(servicePath, "service".getBytes());
+                client.create().withMode(CreateMode.PERSISTENT).forPath(servicePath, service.toMetas().getBytes());
             }
 
             // 创建实例的临时节点
             String instancePath = servicePath + "/" + instance.toPath();
             log.info("====> to register service: " + service + ", instance: " + instance);
-            client.create().withMode(CreateMode.EPHEMERAL).forPath(instancePath, "provider".getBytes());
+            client.create().withMode(CreateMode.EPHEMERAL).forPath(instancePath, instance.toMetas().getBytes());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -89,7 +91,20 @@ public class ZkRegistryCenter implements RegistryCenter {
         try {
             List<String> nodes = client.getChildren().forPath(servicePath);
 //            log.info("====> fetchAll service: " + serviceName + ", nodes: " + JSON.toJSON(nodes));
-            return nodes.stream().map(InstanceMeta::http).collect(Collectors.toList());
+            return nodes.stream().map(node -> {
+                String nodePath = servicePath + "/" + node;
+                byte[] data = null;
+                try {
+                    data = client.getData().forPath(nodePath);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                InstanceMeta instance = InstanceMeta.http(node);
+                HashMap metas = JSON.parseObject(new String(data), HashMap.class);
+                log.debug("====> fetchAll service: " + serviceName + ", metas: " + metas);
+                instance.setParameters(metas);
+                return instance;
+            }).collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
