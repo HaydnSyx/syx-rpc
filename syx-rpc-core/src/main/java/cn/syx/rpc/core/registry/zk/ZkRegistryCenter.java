@@ -150,6 +150,6 @@ public class ZkRegistryCenter implements RegistryCenter {
         }
 
         log.info("====> curatorFramework close...");
-//        curatorFramework.close();
+        curatorFramework.close();
     }
 }
