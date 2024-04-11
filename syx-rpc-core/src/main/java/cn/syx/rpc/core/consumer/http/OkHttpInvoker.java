@@ -1,5 +1,6 @@
 package cn.syx.rpc.core.consumer.http;
 
+import cn.syx.rpc.core.api.RpcException;
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
 import cn.syx.rpc.core.consumer.HttpInvoker;
@@ -45,7 +46,7 @@ public class OkHttpInvoker implements HttpInvoker {
             log.debug("provider response ======> {}", data);
             return JSON.parseObject(data, RpcResponse.class);
         } catch (Exception e) {
-            return new RpcResponse<>(false, null, e);
+            return new RpcResponse<>(false, null, new RpcException(e.getMessage()));
         }
     }
 }

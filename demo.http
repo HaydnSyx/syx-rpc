@@ -1,5 +1,5 @@
 ### 获取用户信息
-POST http://localhost:6082/
+POST http://localhost:6081/rpc
 Content-Type: application/json
 
 {

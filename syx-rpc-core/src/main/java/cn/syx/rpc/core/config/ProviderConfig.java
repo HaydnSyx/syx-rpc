@@ -1,19 +1,34 @@
-package cn.syx.rpc.core.provider;
+package cn.syx.rpc.core.config;
 
 import cn.syx.rpc.core.api.RegistryCenter;
+import cn.syx.rpc.core.provider.ProviderBootstrap;
+import cn.syx.rpc.core.provider.ProviderInvoker;
 import cn.syx.rpc.core.registry.zk.ZkRegistryCenter;
+import cn.syx.rpc.core.transport.SpringBootTransport;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 
 @Configuration
+@Import({AppProperties.class, ProviderProperties.class, SpringBootTransport.class})
 public class ProviderConfig {
 
+    @Value("${server.port:8080}")
+    private int port;
+
     @Bean
-    public ProviderBootstrap providerBootstrap() {
-        return new ProviderBootstrap();
+    public ProviderBootstrap providerBootstrap(
+            @Autowired AppProperties appProperties,
+            @Autowired ProviderProperties providerProperties) {
+        if (providerProperties.getPort() <= 0) {
+            providerProperties.setPort(port);
+        }
+        return new ProviderBootstrap(appProperties, providerProperties);
     }
 
     @Bean
@@ -22,6 +37,7 @@ public class ProviderConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public RegistryCenter providerRegistryCenter() {
         return new ZkRegistryCenter();
     }

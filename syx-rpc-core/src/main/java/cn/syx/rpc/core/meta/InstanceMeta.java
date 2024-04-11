@@ -11,7 +11,7 @@ public class InstanceMeta {
 
     private String schema;
     private String host;
-    private Integer port;
+    private int port;
     private String context;
 
     private boolean status;// online or offline
@@ -31,7 +31,7 @@ public class InstanceMeta {
         instance.setSchema("http");
         instance.setHost(host);
         instance.setPort(port);
-        instance.setContext("");
+        instance.setContext("rpc");
         return instance;
     }
 

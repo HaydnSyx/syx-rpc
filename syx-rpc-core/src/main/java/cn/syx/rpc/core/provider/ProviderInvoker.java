@@ -1,5 +1,6 @@
 package cn.syx.rpc.core.provider;
 
+import cn.syx.rpc.core.api.RpcException;
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
 import cn.syx.rpc.core.meta.ProviderMeta;
@@ -51,12 +52,10 @@ public class ProviderInvoker {
             castArgs(args, metaMethod);
             Object data = metaMethod.invoke(providerMeta.getService(), args);
             return new RpcResponse<>(true, data, null);
-        } catch (RuntimeException e) {
-            return new RpcResponse<>(false, null, e);
         } catch (InvocationTargetException e) {
-            return new RpcResponse<>(false, null, new RuntimeException(e.getTargetException().getMessage()));
-        } catch (IllegalAccessException e) {
-            return new RpcResponse<>(false, null, new RuntimeException(e.getMessage()));
+            return new RpcResponse<>(false, null, new RpcException(e.getTargetException().getMessage()));
+        } catch (IllegalAccessException | IllegalArgumentException e) {
+            return new RpcResponse<>(false, null, new RpcException(e.getMessage()));
         }
     }
 

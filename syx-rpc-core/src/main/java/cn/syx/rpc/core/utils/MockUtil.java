@@ -63,15 +63,4 @@ public class MockUtil {
             return null;
         }
     }
-
-    public static void main(String[] args) {
-        System.out.println(mock(UserDto.class));
-
-    }
-
-    @Data
-    public static class UserDto {
-        private String name;
-        private int age;
-    }
 }

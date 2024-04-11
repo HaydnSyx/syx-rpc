@@ -2,6 +2,8 @@ package cn.syx.rpc.core.consumer;
 
 import cn.syx.rpc.core.annotation.SyxConsumer;
 import cn.syx.rpc.core.api.*;
+import cn.syx.rpc.core.config.AppProperties;
+import cn.syx.rpc.core.config.ConsumerProperties;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
@@ -9,7 +11,6 @@ import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -24,27 +25,19 @@ import java.util.Objects;
 public class ConsumerBootstrap implements ApplicationContextAware {
 
     private ApplicationContext context;
-
-    @Value("${app.id}")
-    private String app;
-
-    @Value("${app.namespace}")
-    private String namespace;
-
-    @Value("${app.env}")
-    private String appEnv;
-
-    @Value("${app.version}")
-    private String version;
-
-    @Value("${app.grayRatio:100}")
-    private int grayRatio;
+    private final AppProperties appProperties;
+    private final ConsumerProperties consumerProperties;
 
     private final Map<String, Object> STUB_MAP = new HashMap<>();
 
     @Override
     public void setApplicationContext(@NotNull ApplicationContext context) throws BeansException {
         this.context = context;
+    }
+
+    public ConsumerBootstrap(AppProperties appProperties, ConsumerProperties consumerProperties) {
+        this.appProperties = appProperties;
+        this.consumerProperties = consumerProperties;
     }
 
     public void start() {
@@ -85,11 +78,11 @@ public class ConsumerBootstrap implements ApplicationContextAware {
 
     private Object createFromRegistryCenter(Class<?> service, RpcContext context, RegistryCenter rc) {
         ServiceMeta serviceMeta = ServiceMeta.builder()
-                .app(app)
-                .namespace(namespace)
-                .env(appEnv)
+                .app(appProperties.getId())
+                .namespace(appProperties.getNamespace())
+                .env(appProperties.getEnv())
                 .name(service.getCanonicalName())
-                .version(version)
+                .version(appProperties.getVersion())
                 .build();
         final List<InstanceMeta> providers = rc.fetchAll(serviceMeta);
         log.info("real providers ======> {}", JSON.toJSON(providers));

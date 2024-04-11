@@ -13,5 +13,5 @@ public class RpcResponse<T> {
 
     private T data;
 
-    private Exception ex;
+    private RpcException ex;
 }

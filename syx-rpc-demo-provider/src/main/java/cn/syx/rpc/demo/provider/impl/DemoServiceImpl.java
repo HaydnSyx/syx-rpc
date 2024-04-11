@@ -1,4 +1,4 @@
-package cn.syx.rpc.demo.provider;
+package cn.syx.rpc.demo.provider.impl;
 
 import cn.syx.rpc.core.annotation.SyxProvider;
 import cn.syx.rpc.demo.api.DemoService;

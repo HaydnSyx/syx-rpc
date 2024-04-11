@@ -13,6 +13,18 @@ public class RpcException extends RuntimeException {
     private String errCode;
     private String errMessage;
 
+    public RpcException(RpcResultCode code) {
+        super(code.getMsg());
+        this.errCode = code.getResponseCode();
+        this.errMessage = code.getMsg();
+    }
+
+    public RpcException(RpcResultCode code, String errMessage) {
+        super(errMessage);
+        this.errCode = code.getResponseCode();
+        this.errMessage = errMessage;
+    }
+
     public RpcException(String errCode, String errMessage) {
         super(errMessage);
         this.errCode = errCode;
