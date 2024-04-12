@@ -8,6 +8,9 @@ Content-Type: application/json
   "args": [10000]
 }
 
+### 通过6081调用配置项
+GET http://localhost:6081/metas
+
 ### 获取用户信息
 GET http://localhost:7080/find/id?id=100
 
