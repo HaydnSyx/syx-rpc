@@ -127,29 +127,4 @@ public class ZkRegistryCenter implements RegistryCenter {
             throw new RuntimeException(e);
         }
     }
-
-
-    public static void main(String[] args) throws InterruptedException {
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        CuratorFramework curatorFramework = CuratorFrameworkFactory.builder()
-                .connectString("syx.workspace.com:2181,syx.workspace.com:2182,syx.workspace.com:2183")
-                .connectionTimeoutMs(5000)
-                .sessionTimeoutMs(5000)
-                .namespace("test")
-                .retryPolicy(retryPolicy)
-                .build();
-        log.info("====> curatorFramework start...");
-        curatorFramework.start();
-        log.info("====> curatorFramework started finished");
-
-        try {
-            curatorFramework.create().forPath("/syx", "Hello Syx".getBytes());
-            log.info("节点创建成功");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        log.info("====> curatorFramework close...");
-        curatorFramework.close();
-    }
 }

@@ -1,5 +1,6 @@
 package cn.syx.rpc.core.filter;
 
+import cn.syx.rpc.core.annotation.SyxFilter;
 import cn.syx.rpc.core.api.Filter;
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
@@ -9,6 +10,7 @@ import cn.syx.rpc.core.utils.MockUtil;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
+@SyxFilter(name = "mock", order = 0)
 public class MockFilter implements Filter {
 
     @Override

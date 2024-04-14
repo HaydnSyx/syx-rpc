@@ -12,6 +12,8 @@ public class ConsumerProperties {
 
     private int timeout = 1000;
 
+    private int connectionTimeout = 1000;
+
     private int faultLimit = 10;
 
     private int halfOpenInitialDelay = 10_000;

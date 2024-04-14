@@ -1,5 +1,6 @@
 package cn.syx.rpc.core.filter;
 
+import cn.syx.rpc.core.annotation.SyxFilter;
 import cn.syx.rpc.core.api.Filter;
 import cn.syx.rpc.core.api.RpcContext;
 import cn.syx.rpc.core.api.RpcRequest;
@@ -10,6 +11,7 @@ import java.util.Map;
 /**
  * 处理上下文参数.
  */
+@SyxFilter(name = "default", order = Integer.MAX_VALUE)
 public class ContextParameterFilter implements Filter {
 
     @Override

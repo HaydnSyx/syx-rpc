@@ -16,7 +16,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class RpcContext {
 
-    private List<Filter> filters;
+    private Map<String, WrapperFilter> filterMap;
     private Router<InstanceMeta> router;
     private LoadBalancer<InstanceMeta> loadBalancer;
     private Map<String, String> params = new HashMap<>();

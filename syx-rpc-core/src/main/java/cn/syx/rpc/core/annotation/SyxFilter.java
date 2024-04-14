@@ -6,11 +6,11 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
-public @interface SyxProvider {
+public @interface SyxFilter {
 
-    String namespace() default "";
+    String name();
 
-    String group() default "";
+    boolean global() default true;
 
-    String version() default "";
+    int order() default 0;
 }

@@ -7,12 +7,15 @@ import cn.syx.rpc.core.api.Router;
 import cn.syx.rpc.core.cluster.GrayRouter;
 import cn.syx.rpc.core.cluster.RoundRibbonLoadBalancer;
 import cn.syx.rpc.core.consumer.ConsumerBootstrap;
+import cn.syx.rpc.core.filter.CacheFilter;
 import cn.syx.rpc.core.filter.ContextParameterFilter;
+import cn.syx.rpc.core.filter.MockFilter;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.registry.zk.ZkRegistryCenter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -41,6 +44,18 @@ public class ConsumerConfig {
     @Bean
     public Filter defaultFilter() {
         return new ContextParameterFilter();
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "cn.syx.rpc.core.api.filter.cache", value = "enabled")
+    public Filter cacheFilter() {
+        return new CacheFilter();
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "cn.syx.rpc.core.api.filter.mock", value = "enabled")
+    public Filter mockFilter() {
+        return new MockFilter();
     }
 
     @Bean

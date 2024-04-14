@@ -49,3 +49,12 @@ Content-Type: application/json
   "methodSign": "userListToMap(java.util.List)",
   "args": [[{"id":1,"name":"name1"},{"id":2,"name":"name2"},{"id":3,"name":"name3"}]]
 }
+
+### demo测试
+GET http://localhost:7080/demo?method=bbb&param=123
+
+### demo测试
+GET http://localhost:7080/demo?method=ccc&param=123
+
+### demo测试
+GET http://localhost:7080/demo?method=hhh&param=123

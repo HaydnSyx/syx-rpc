@@ -53,6 +53,17 @@ public class MethodUtil {
         return null;
     }
 
+    // 解析类上的注解
+    public static <T extends Annotation> T findClsAnnotation(Class<?> cls, Class<T> annotationCls) {
+        while (cls != null) {
+            if (cls.isAnnotationPresent(annotationCls)) {
+                return cls.getAnnotation(annotationCls);
+            }
+            cls = cls.getSuperclass();
+        }
+        return null;
+    }
+
     public static List<Field> findAnnotationField(Class<?> cls, Class<? extends Annotation> annotationCls) {
         List<Field> result = new ArrayList<>();
         while (cls != null) {

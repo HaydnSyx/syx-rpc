@@ -2,10 +2,12 @@ package cn.syx.rpc.core.consumer;
 
 import cn.syx.rpc.core.api.*;
 import cn.syx.rpc.core.consumer.http.OkHttpInvoker;
+import cn.syx.rpc.core.filter.FilterChain;
 import cn.syx.rpc.core.governance.SlidingTimeWindow;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
 import cn.syx.rpc.core.utils.TypeUtil;
+import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,15 +16,16 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.SocketTimeoutException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class SyxInvokerHandler implements InvocationHandler {
 
     private final Class<?> cls;
     private final RpcContext rpcContext;
+    private final RpcConsumerContext rpcConsumerContext;
     private final List<InstanceMeta> providerList;
 
     private final Set<InstanceMeta> isolateProviderList = new HashSet<>();
@@ -31,17 +34,23 @@ public class SyxInvokerHandler implements InvocationHandler {
 
     Map<String, SlidingTimeWindow> windows = new HashMap<>();
 
-    private final HttpInvoker invoker = new OkHttpInvoker();
+    private final HttpInvoker invoker;
 
     private final ScheduledExecutorService executorService;
 
-    public SyxInvokerHandler(Class<?> cls, RpcContext context, List<InstanceMeta> providerList) {
+    private Map<String, FilterChain> filterChainMap = new HashMap<>();
+
+    public SyxInvokerHandler(Class<?> cls, RpcContext context, RpcConsumerContext consumerContext, List<InstanceMeta> providerList) {
         this.cls = cls;
         this.rpcContext = context;
+        this.rpcConsumerContext = consumerContext;
         this.providerList = providerList;
+        this.invoker = new OkHttpInvoker(consumerContext);
         this.executorService = Executors.newScheduledThreadPool(1);
         this.executorService.scheduleWithFixedDelay(this::halfOpen,
-                10, 60, java.util.concurrent.TimeUnit.SECONDS);
+                consumerContext.getHalfOpenInitialDelay(),
+                consumerContext.getHalfOpenDelay(),
+                java.util.concurrent.TimeUnit.SECONDS);
     }
 
     private void halfOpen() {
@@ -64,19 +73,22 @@ public class SyxInvokerHandler implements InvocationHandler {
         // 生成方法签名
         request.setMethodSign(MethodUtil.generateMethodSign(method));
 
-        List<Filter> filters = rpcContext.getFilters();
-        int retryNum = 2;
+        // 生成方法级别过滤器链表
+        Map<String, WrapperFilter> filterMap = rpcContext.getFilterMap();
+        FilterChain filterChain = getFilterChain(request.getMethodSign(), method, filterMap);
+
+        int retryNum = getMethodRetryNum(method);
+        log.debug("===> parse retryNum: {}", retryNum);
+
         while (retryNum-- > 0) {
             log.info(" ===> retryNum: {}", retryNum);
 
             try {
                 // 前置过滤处理
-                for (Filter filter : filters) {
-                    Object result = filter.preFilter(request);
-                    if (result != null) {
-                        log.debug("前置过滤处理结果: {}", result);
-                        return result;
-                    }
+                Object filterResult = filterChain.preFilter(request);
+                if (filterResult != null) {
+                    log.debug("前置过滤处理结果: {}", filterResult);
+                    return filterResult;
                 }
 
                 InstanceMeta instance = null;
@@ -111,14 +123,14 @@ public class SyxInvokerHandler implements InvocationHandler {
                     log.debug("===> instance: {}, window: {}", url, window.getSum());
 
                     // 发生10次则进行故障隔离
-                    if (window.getSum() >= 10) {
+                    if (window.getSum() >= rpcConsumerContext.getFaultLimit()) {
                         isolate(instance);
                     }
 
                     throw e;
                 }
 
-                synchronized (providerList){
+                synchronized (providerList) {
                     if (!providerList.contains(instance)) {
                         isolateProviderList.remove(instance);
                         providerList.add(instance);
@@ -128,10 +140,8 @@ public class SyxInvokerHandler implements InvocationHandler {
                 }
 
                 // 后置过滤处理
-                for (Filter filter : filters) {
-                    result = filter.postFilter(request, response, result);
-                    log.debug("后置过滤处理结果: {}", response);
-                }
+                result = filterChain.postFilter(request, response, result);
+                log.debug("后置过滤处理结果: {}", response);
 
                 return result;
             } catch (Exception ex) {
@@ -161,5 +171,45 @@ public class SyxInvokerHandler implements InvocationHandler {
         }
 
         throw new RpcException(response.getEx());
+    }
+
+    private FilterChain getFilterChain(String methodSign, Method method, Map<String, WrapperFilter> filterMap) {
+        FilterChain filterChain = filterChainMap.get(methodSign);
+        if (Objects.nonNull(filterChain)) {
+            log.debug("===> {} cache filter chain: {}", methodSign,
+                    JSON.toJSONString(filterChain.getFilters().stream().map(e -> e.getClass().getSimpleName()).collect(Collectors.toList())));
+            return filterChain;
+        }
+
+        List<String> filterNames = new ArrayList<>();
+
+        String methodName = method.getName();
+        List<String> methodFilterList = rpcConsumerContext.getFilterMap().get(methodName);
+        List<String> filterNameList = rpcConsumerContext.getFilters();
+
+        if (Objects.nonNull(methodFilterList)) {
+            filterNames.addAll(methodFilterList);
+        } else {
+            filterNames.addAll(filterNameList);
+        }
+
+        filterChain = FilterChain.create(filterMap, filterNames);
+        log.debug("===> {} create filter chain: {}", methodSign,
+                JSON.toJSONString(filterChain.getFilters().stream().map(e -> e.getClass().getSimpleName()).collect(Collectors.toList())));
+        filterChainMap.put(methodSign, filterChain);
+        return filterChain;
+    }
+
+    private int getMethodRetryNum(Method method) {
+        String methodName = method.getName();
+        int retryNum = rpcConsumerContext.getRetries();
+        Map<String, Integer> methodRetryMap = rpcConsumerContext.getRetrytMap();
+        if (Objects.nonNull(methodRetryMap)) {
+            Integer num = methodRetryMap.get(methodName);
+            if (Objects.nonNull(num) && num > 0) {
+                retryNum = num;
+            }
+        }
+        return retryNum;
     }
 }

@@ -1,5 +1,6 @@
 package cn.syx.rpc.core.consumer.http;
 
+import cn.syx.rpc.core.api.RpcConsumerContext;
 import cn.syx.rpc.core.api.RpcException;
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
@@ -18,12 +19,13 @@ public class OkHttpInvoker implements HttpInvoker {
 
     private final OkHttpClient client;
 
-    public OkHttpInvoker() {
+    public OkHttpInvoker(RpcConsumerContext consumerContext) {
         this.client = new OkHttpClient().newBuilder()
+                .addInterceptor(new DynamicConnectTimeout(consumerContext))
                 .connectionPool(new ConnectionPool(16, 1, TimeUnit.MINUTES))
-                .readTimeout(1, TimeUnit.SECONDS)
-                .writeTimeout(1, TimeUnit.SECONDS)
-                .connectTimeout(1, TimeUnit.SECONDS)
+                .readTimeout(consumerContext.getTimeout(), TimeUnit.MILLISECONDS)
+                .writeTimeout(consumerContext.getTimeout(), TimeUnit.MILLISECONDS)
+                .connectTimeout(consumerContext.getConnectionTimeout(), TimeUnit.MILLISECONDS)
                 .build();
     }
 
@@ -35,7 +37,6 @@ public class OkHttpInvoker implements HttpInvoker {
                 .url(url)
                 .post(RequestBody.create(body, mediaType))
                 .build();
-
         try (Response response = client.newCall(req).execute()) {
             ResponseBody responseBody = response.body();
             if (Objects.isNull(responseBody)) {

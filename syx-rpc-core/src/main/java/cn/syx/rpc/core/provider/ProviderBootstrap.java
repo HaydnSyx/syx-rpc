@@ -12,6 +12,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -71,7 +72,7 @@ public class ProviderBootstrap implements ApplicationContextAware {
         this.instance = InstanceMeta.http(ip, providerProperties.getPort());
         this.instance.getParameters().putAll(providerProperties.getMetas());
         this.registryCenter.start();
-        skeletonMap.keySet().forEach(this::registerService);
+        skeletonMap.forEach((k, v) -> registerService(k, v.get(0)));
     }
 
     /**
@@ -104,20 +105,21 @@ public class ProviderBootstrap implements ApplicationContextAware {
         skeletonMap.add(cls.getCanonicalName(), providerMeta);
     }
 
-    private void registerService(String service) {
+    private void registerService(String service, ProviderMeta meta) {
+        SyxProvider provider = meta.getService().getClass().getAnnotation(SyxProvider.class);
         ServiceMeta serviceMeta = ServiceMeta.builder()
-                .app(appProperties.getId())
-                .namespace(appProperties.getNamespace())
+                .group(StringUtils.isBlank(provider.group()) ? appProperties.getGroup() : provider.group())
+                .namespace(StringUtils.isBlank(provider.namespace()) ? appProperties.getNamespace() : provider.namespace())
                 .env(appProperties.getEnv())
                 .name(service)
-                .version(appProperties.getVersion())
+                .version(StringUtils.isBlank(provider.version()) ? appProperties.getVersion() : provider.version())
                 .build();
         this.registryCenter.register(serviceMeta, this.instance);
     }
 
     private void unregisterService(String service) {
         ServiceMeta serviceMeta = ServiceMeta.builder()
-                .app(appProperties.getId())
+                .group(appProperties.getGroup())
                 .namespace(appProperties.getNamespace())
                 .env(appProperties.getEnv())
                 .name(service)

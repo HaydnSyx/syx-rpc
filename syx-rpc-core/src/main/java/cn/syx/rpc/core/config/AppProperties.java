@@ -7,12 +7,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "syxrpc.app")
 public class AppProperties {
 
-    // for app instance
-    private String id = "app1";
-
     private String namespace = "default";
 
-    private String env = "dev";
+    private String group = "app";
 
     private String version = "1.0.0";
+
+    private String env = "dev";
 }
