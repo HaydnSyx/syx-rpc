@@ -6,6 +6,7 @@ import cn.syx.rpc.core.annotation.SyxConsumer;
 import cn.syx.rpc.demo.api.DemoService;
 import cn.syx.rpc.demo.api.User;
 import cn.syx.rpc.demo.api.UserService;
+import com.ctrip.framework.apollo.spring.annotation.EnableApolloConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,6 +18,7 @@ import java.util.Objects;
 @RestController
 @SpringBootApplication
 @EnableConsumer
+@EnableApolloConfig
 public class SyxRpcDemoConsumerApplication {
 
     @SyxConsumer

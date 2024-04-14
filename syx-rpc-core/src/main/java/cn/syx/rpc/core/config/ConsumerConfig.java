@@ -12,6 +12,7 @@ import cn.syx.rpc.core.filter.ContextParameterFilter;
 import cn.syx.rpc.core.filter.MockFilter;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.registry.zk.ZkRegistryCenter;
+import com.ctrip.framework.apollo.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -29,6 +30,12 @@ public class ConsumerConfig {
     private AppProperties appProperties;
     @Autowired
     private ConsumerProperties consumerProperties;
+
+    @Bean
+    @ConditionalOnProperty(prefix = "apollo.bootstrap", value = "enabled")
+    public TimeoutChangedListener consumerTimeoutChangeListener() {
+        return new TimeoutChangedListener();
+    }
 
     @Bean
     public ConsumerBootstrap createConsumerBootstrap() {
