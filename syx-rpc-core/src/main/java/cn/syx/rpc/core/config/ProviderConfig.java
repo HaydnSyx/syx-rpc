@@ -3,6 +3,7 @@ package cn.syx.rpc.core.config;
 import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.provider.ProviderBootstrap;
 import cn.syx.rpc.core.provider.ProviderInvoker;
+import cn.syx.rpc.core.registry.syx.SyxRegistryCenter;
 import cn.syx.rpc.core.registry.zk.ZkRegistryCenter;
 import cn.syx.rpc.core.transport.SpringBootTransport;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,8 @@ public class ProviderConfig {
     @Bean
     @ConditionalOnMissingBean
     public RegistryCenter providerRegistryCenter() {
-        return new ZkRegistryCenter();
+//        return new ZkRegistryCenter();
+        return new SyxRegistryCenter();
     }
 
     @Bean

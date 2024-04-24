@@ -1,5 +1,6 @@
 package cn.syx.rpc.core.provider;
 
+import cn.syx.rpc.core.api.RpcContext;
 import cn.syx.rpc.core.api.RpcException;
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
@@ -48,6 +49,11 @@ public class ProviderInvoker {
                 throw new RuntimeException("未匹配到合适方法");
             }
 
+            // 放入上下文中
+            if(!request.getParams().isEmpty()) {
+                request.getParams().forEach(RpcContext::setContextParameter);
+            }
+
             Method metaMethod = providerMeta.getMethod();
             castArgs(args, metaMethod);
             Object data = metaMethod.invoke(providerMeta.getService(), args);
@@ -56,6 +62,8 @@ public class ProviderInvoker {
             return new RpcResponse<>(false, null, new RpcException(e.getTargetException().getMessage()));
         } catch (IllegalAccessException | IllegalArgumentException e) {
             return new RpcResponse<>(false, null, new RpcException(e.getMessage()));
+        } finally {
+            RpcContext.ContextParams.get().clear();
         }
     }
 

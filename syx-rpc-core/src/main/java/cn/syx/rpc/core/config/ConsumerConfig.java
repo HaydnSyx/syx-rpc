@@ -11,6 +11,7 @@ import cn.syx.rpc.core.filter.CacheFilter;
 import cn.syx.rpc.core.filter.ContextParameterFilter;
 import cn.syx.rpc.core.filter.MockFilter;
 import cn.syx.rpc.core.meta.InstanceMeta;
+import cn.syx.rpc.core.registry.syx.SyxRegistryCenter;
 import cn.syx.rpc.core.registry.zk.ZkRegistryCenter;
 import com.ctrip.framework.apollo.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +79,7 @@ public class ConsumerConfig {
     @Bean(initMethod = "start", destroyMethod = "stop")
     @ConditionalOnMissingBean
     public RegistryCenter registryCenter() {
-        return new ZkRegistryCenter();
+//        return new ZkRegistryCenter();
+        return new SyxRegistryCenter();
     }
 }

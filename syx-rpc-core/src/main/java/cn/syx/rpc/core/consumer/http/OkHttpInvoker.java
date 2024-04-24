@@ -50,4 +50,14 @@ public class OkHttpInvoker implements HttpInvoker {
             return new RpcResponse<>(false, null, new RpcException(e.getMessage()));
         }
     }
+
+    @Override
+    public String post(String requestStr, String url) {
+        return null;
+    }
+
+    @Override
+    public String get(String url) {
+        return null;
+    }
 }

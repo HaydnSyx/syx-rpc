@@ -1,6 +1,7 @@
 package cn.syx.rpc.demo.provider.impl;
 
 import cn.syx.rpc.core.annotation.SyxProvider;
+import cn.syx.rpc.core.api.RpcContext;
 import cn.syx.rpc.demo.api.DemoService;
 import cn.syx.rpc.demo.api.User;
 import lombok.extern.slf4j.Slf4j;
@@ -91,6 +92,8 @@ public class DemoServiceImpl implements DemoService {
         if (id == 10) {
             return null;
         }
+        String content = RpcContext.getContextParameter("trace_id");
+        log.info("===> invoker hhh from context get trace_id: {}", content);
         return "abc";
     }
 

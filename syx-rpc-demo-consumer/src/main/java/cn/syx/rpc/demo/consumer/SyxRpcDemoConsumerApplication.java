@@ -3,6 +3,7 @@ package cn.syx.rpc.demo.consumer;
 import cn.syx.rpc.core.annotation.EnableConsumer;
 import cn.syx.rpc.core.annotation.EnableProvider;
 import cn.syx.rpc.core.annotation.SyxConsumer;
+import cn.syx.rpc.core.api.RpcContext;
 import cn.syx.rpc.demo.api.DemoService;
 import cn.syx.rpc.demo.api.User;
 import cn.syx.rpc.demo.api.UserService;
@@ -13,6 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -58,6 +60,7 @@ public class SyxRpcDemoConsumerApplication {
             return demoService.ccc(Integer.parseInt(param));
         }
         if (Objects.equals("hhh", method)) {
+            RpcContext.setContextParameter("trace_id", UUID.randomUUID().toString());
             return demoService.hhh(Integer.parseInt(param));
         }
         return "not support method";

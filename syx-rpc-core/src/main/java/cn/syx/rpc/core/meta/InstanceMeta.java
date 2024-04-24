@@ -14,7 +14,7 @@ public class InstanceMeta {
     private String schema;
     private String host;
     private int port;
-    private String path;
+    private String path = "rpc";
 
     private boolean status;// online or offline
     private Map<String, String> parameters = new HashMap<>();
