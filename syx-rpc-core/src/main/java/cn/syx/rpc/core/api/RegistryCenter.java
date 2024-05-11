@@ -2,7 +2,7 @@ package cn.syx.rpc.core.api;
 
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.meta.ServiceMeta;
-import cn.syx.rpc.core.registry.ChangeListener;
+import cn.syx.rpc.core.registry.RegistryChangeListener;
 
 import java.util.List;
 
@@ -18,5 +18,5 @@ public interface RegistryCenter {
 
     List<InstanceMeta> fetchAll(ServiceMeta service);
 
-    void subscribe(ServiceMeta service, ChangeListener listener);
+    void subscribe(ServiceMeta service, RegistryChangeListener listener);
 }

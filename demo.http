@@ -11,15 +11,6 @@ Content-Type: application/json
 ### 通过6081调用配置项
 GET http://localhost:6081/metas
 
-### 获取用户信息
-GET http://localhost:7080/find/id?id=100
-
-### 获取用户信息-超时
-GET http://localhost:7080/find/timeout?id=100&timeout=1100&fireTimeout=false
-
-### 获取用户信息-超时
-GET http://localhost:7080/find/timeout?id=100&timeout=1100&fireTimeout=true
-
 ### 测试demo
 POST http://localhost:6080/
 Content-Type: application/json
@@ -49,6 +40,15 @@ Content-Type: application/json
   "methodSign": "userListToMap(java.util.List)",
   "args": [[{"id":1,"name":"name1"},{"id":2,"name":"name2"},{"id":3,"name":"name3"}]]
 }
+
+### 获取用户信息
+GET http://localhost:7080/find/id?id=100
+
+### 获取用户信息-超时
+GET http://localhost:7080/find/timeout?id=100&timeout=1100&fireTimeout=false
+
+### 获取用户信息-超时
+GET http://localhost:7080/find/timeout?id=100&timeout=1100&fireTimeout=true
 
 ### demo测试
 GET http://localhost:7080/demo?method=bbb&param=123

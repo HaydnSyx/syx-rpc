@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Event {
+public class RegistryChangeEvent {
 
     private List<InstanceMeta> data;
 }

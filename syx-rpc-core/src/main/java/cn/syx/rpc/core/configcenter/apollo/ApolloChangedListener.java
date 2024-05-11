@@ -1,4 +1,4 @@
-package cn.syx.rpc.core.config;
+package cn.syx.rpc.core.configcenter.apollo;
 
 import com.ctrip.framework.apollo.model.ConfigChange;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;

@@ -3,16 +3,16 @@ package cn.syx.rpc.core.config;
 import cn.syx.rpc.core.api.*;
 import cn.syx.rpc.core.cluster.GrayRouter;
 import cn.syx.rpc.core.cluster.RoundRibbonLoadBalancer;
+import cn.syx.rpc.core.configcenter.DynamicRequestTime;
+import cn.syx.rpc.core.configcenter.apollo.TimeoutChangedListener;
 import cn.syx.rpc.core.consumer.ConsumerBootstrap;
 import cn.syx.rpc.core.filter.CacheFilter;
 import cn.syx.rpc.core.filter.ContextParameterFilter;
 import cn.syx.rpc.core.filter.MockFilter;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.registry.syx.SyxRegistryCenter;
-import cn.syx.rpc.core.registry.zk.ZkRegistryCenter;
 import cn.syx.rpc.core.serialize.SyxConsumerSerializer;
 import cn.syx.rpc.core.transport.CommonHttpTransporter;
-import com.ctrip.framework.apollo.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -51,7 +51,8 @@ public class ConsumerConfig {
     @Bean
     @ConditionalOnMissingBean
     public Transporter transporter() {
-        return new CommonHttpTransporter();
+        DynamicRequestTime requestTime = new TimeoutChangedListener();
+        return new CommonHttpTransporter(requestTime);
     }
 
     @Bean

@@ -1,11 +1,10 @@
-package cn.syx.rpc.core.config;
+package cn.syx.rpc.core.configcenter.apollo;
 
+import cn.syx.rpc.core.configcenter.DynamicRequestTime;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
-import com.ctrip.framework.apollo.internals.DefaultConfig;
-import com.ctrip.framework.apollo.internals.SimpleConfig;
 import com.ctrip.framework.apollo.model.ConfigChange;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;
 import com.ctrip.framework.apollo.spring.annotation.ApolloConfigChangeListener;
@@ -17,14 +16,18 @@ import org.springframework.context.event.EventListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 
 @Data
 @Slf4j
-public class TimeoutChangedListener {
+public class TimeoutChangedListener implements DynamicRequestTime {
 
     private static Map<String, ConsumerTimeoutConfig> timeoutConfigMap = new HashMap<>();
+
+    @Override
+    public Integer getTimeout(String serviceName, String methodName) {
+        return doGetTimeout(serviceName, methodName);
+    }
 
     @EventListener(ApplicationReadyEvent.class)
     public void initConfig() {
@@ -56,7 +59,7 @@ public class TimeoutChangedListener {
         }
     }
 
-    public static Integer getTimeout(String serviceName, String methodName) {
+    public static Integer doGetTimeout(String serviceName, String methodName) {
         ConsumerTimeoutConfig timeoutConfig = timeoutConfigMap.get(serviceName);
         if (Objects.isNull(timeoutConfig)) {
             return null;

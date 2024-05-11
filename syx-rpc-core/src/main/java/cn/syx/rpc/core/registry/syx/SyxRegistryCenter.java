@@ -4,8 +4,8 @@ import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.consumer.HttpInvoker;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.meta.ServiceMeta;
-import cn.syx.rpc.core.registry.ChangeListener;
-import cn.syx.rpc.core.registry.Event;
+import cn.syx.rpc.core.registry.RegistryChangeListener;
+import cn.syx.rpc.core.registry.RegistryChangeEvent;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +31,6 @@ public class SyxRegistryCenter implements RegistryCenter {
     private Map<String, Long> VERSIONS = new HashMap<>();
     MultiValueMap<InstanceMeta, ServiceMeta> RENEWS = new LinkedMultiValueMap<>();
     private ScheduledExecutorService executorService;
-
-//    private ScheduledExecutorService consumerService;
     private ScheduledExecutorService providerService;
 
     @Override
@@ -47,8 +45,6 @@ public class SyxRegistryCenter implements RegistryCenter {
         log.info("===> SyxRegistryCenter started.");
 
         executorService = Executors.newScheduledThreadPool(1);
-//        consumerService = Executors.newScheduledThreadPool(1);
-        // todo 优化在consumer启动时不执行下列代码
         providerService = Executors.newScheduledThreadPool(1);
 
         providerService.scheduleWithFixedDelay(() -> {
@@ -64,7 +60,6 @@ public class SyxRegistryCenter implements RegistryCenter {
     public void stop() {
         log.info("===> SyxRegistryCenter stopped.");
         gracefulShutdown(executorService);
-//        gracefulShutdown(consumerService);
         gracefulShutdown(providerService);
     }
 
@@ -105,7 +100,7 @@ public class SyxRegistryCenter implements RegistryCenter {
     }
 
     @Override
-    public void subscribe(ServiceMeta service, ChangeListener listener) {
+    public void subscribe(ServiceMeta service, RegistryChangeListener listener) {
         executorService.scheduleWithFixedDelay(() -> {
             // 获取当前服务版本
             Long version = VERSIONS.get(service.toPath());
@@ -118,7 +113,7 @@ public class SyxRegistryCenter implements RegistryCenter {
             if (newVersion > version) {
                 // 获取最新的服务实例
                 List<InstanceMeta> nodes = fetchAll(service);
-                listener.fire(new Event(nodes));
+                listener.fire(new RegistryChangeEvent(nodes));
                 VERSIONS.put(service.toPath(), newVersion);
             }
         }, 1000, 5000, TimeUnit.MILLISECONDS);

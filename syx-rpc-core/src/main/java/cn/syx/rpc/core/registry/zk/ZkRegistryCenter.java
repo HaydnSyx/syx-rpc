@@ -3,8 +3,8 @@ package cn.syx.rpc.core.registry.zk;
 import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.meta.ServiceMeta;
-import cn.syx.rpc.core.registry.ChangeListener;
-import cn.syx.rpc.core.registry.Event;
+import cn.syx.rpc.core.registry.RegistryChangeListener;
+import cn.syx.rpc.core.registry.RegistryChangeEvent;
 import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
@@ -111,7 +111,7 @@ public class ZkRegistryCenter implements RegistryCenter {
     }
 
     @Override
-    public void subscribe(ServiceMeta service, ChangeListener listener) {
+    public void subscribe(ServiceMeta service, RegistryChangeListener listener) {
         final TreeCache cache = TreeCache.newBuilder(client, "/" + service.toPath())
                 .setCacheData(true)
                 .setMaxDepth(2)
@@ -121,7 +121,7 @@ public class ZkRegistryCenter implements RegistryCenter {
             cache.getListenable().addListener((cl, event) -> {
 //                log.info("====> subscribe event: " + event);
                 List<InstanceMeta> nodes = fetchAll(service);
-                listener.fire(new Event(nodes));
+                listener.fire(new RegistryChangeEvent(nodes));
             });
         } catch (Exception e) {
             throw new RuntimeException(e);

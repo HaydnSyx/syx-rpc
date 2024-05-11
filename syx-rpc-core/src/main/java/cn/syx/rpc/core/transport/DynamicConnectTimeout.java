@@ -2,7 +2,7 @@ package cn.syx.rpc.core.transport;
 
 import cn.syx.rpc.core.api.RpcConsumerContext;
 import cn.syx.rpc.core.api.RpcRequest;
-import cn.syx.rpc.core.config.TimeoutChangedListener;
+import cn.syx.rpc.core.configcenter.DynamicRequestTime;
 import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
@@ -21,6 +21,12 @@ import static cn.syx.rpc.core.consumer.ConsumerBootstrap.CONSUMER_CONTEXT_MAP;
 
 @Slf4j
 public class DynamicConnectTimeout implements Interceptor {
+
+    private final DynamicRequestTime dynamicRequestTime;
+
+    public DynamicConnectTimeout(DynamicRequestTime dynamicRequestTime) {
+        this.dynamicRequestTime = dynamicRequestTime;
+    }
 
     @NotNull
     @Override
@@ -43,8 +49,12 @@ public class DynamicConnectTimeout implements Interceptor {
             RpcConsumerContext consumerContext = CONSUMER_CONTEXT_MAP.get(service);
 
             // 1.从配置中心中获取超时时间
-            Integer timeout = TimeoutChangedListener.getTimeout(service, methodName);
-            // 2.从本地配置中获取超时时间
+            Integer timeout = null;
+            if (Objects.nonNull(dynamicRequestTime)) {
+                timeout = dynamicRequestTime.getTimeout(service, methodName);
+            }
+
+            // 2.启动配置中获取超时时间
             if (Objects.isNull(timeout)) {
                 timeout = consumerContext.getTimeoutMap().get(methodName);
             }
