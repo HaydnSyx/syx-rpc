@@ -2,7 +2,6 @@ package cn.syx.rpc.core.registry.syx;
 
 import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.consumer.HttpInvoker;
-import cn.syx.rpc.core.consumer.http.DynamicConnectTimeout;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.registry.ChangeListener;
@@ -10,8 +9,6 @@ import cn.syx.rpc.core.registry.Event;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.ConnectionPool;
-import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;

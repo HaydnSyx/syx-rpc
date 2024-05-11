@@ -2,8 +2,6 @@ package cn.syx.rpc.core.consumer;
 
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
-import cn.syx.rpc.core.consumer.http.DynamicConnectTimeout;
-import cn.syx.rpc.core.consumer.http.OkHttpInvoker;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import okhttp3.*;

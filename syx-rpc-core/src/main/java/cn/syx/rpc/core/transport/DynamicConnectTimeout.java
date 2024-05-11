@@ -1,4 +1,4 @@
-package cn.syx.rpc.core.consumer.http;
+package cn.syx.rpc.core.transport;
 
 import cn.syx.rpc.core.api.RpcConsumerContext;
 import cn.syx.rpc.core.api.RpcRequest;
@@ -17,14 +17,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static cn.syx.rpc.core.consumer.ConsumerBootstrap.CONSUMER_CONTEXT_MAP;
+
 @Slf4j
 public class DynamicConnectTimeout implements Interceptor {
-
-    private final RpcConsumerContext consumerContext;
-
-    public DynamicConnectTimeout(RpcConsumerContext consumerContext) {
-        this.consumerContext = consumerContext;
-    }
 
     @NotNull
     @Override
@@ -43,6 +39,8 @@ public class DynamicConnectTimeout implements Interceptor {
             String service = rpcRequest.getService();
             String methodSign = rpcRequest.getMethodSign();
             String methodName = methodSign.substring(0, methodSign.indexOf("("));
+
+            RpcConsumerContext consumerContext = CONSUMER_CONTEXT_MAP.get(service);
 
             // 1.从配置中心中获取超时时间
             Integer timeout = TimeoutChangedListener.getTimeout(service, methodName);

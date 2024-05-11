@@ -1,9 +1,7 @@
 package cn.syx.rpc.core.consumer;
 
 import cn.syx.rpc.core.api.*;
-import cn.syx.rpc.core.consumer.http.OkHttpInvoker;
 import cn.syx.rpc.core.filter.FilterChain;
-import cn.syx.rpc.core.governance.SlidingTimeWindow;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
 import cn.syx.rpc.core.utils.TypeUtil;
@@ -12,168 +10,87 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.SocketTimeoutException;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class SyxInvokerHandler implements InvocationHandler {
 
     private final Class<?> cls;
-    private final RpcContext rpcContext;
-    private final RpcConsumerContext rpcConsumerContext;
-    private final List<InstanceMeta> providerList;
-
-    private final Set<InstanceMeta> isolateProviderList = new HashSet<>();
-
-    private final List<InstanceMeta> halfOpenProviderList = new ArrayList<>();
-
-    Map<String, SlidingTimeWindow> windows = new HashMap<>();
-
-    private final HttpInvoker invoker;
-
-    private final ScheduledExecutorService executorService;
-
-    private Map<String, FilterChain> filterChainMap = new HashMap<>();
+    protected final RpcContext rpcContext;
+    protected final RpcConsumerContext rpcConsumerContext;
+    protected final List<InstanceMeta> providerList;
+    /**
+     * 方法对应的过滤器链表
+     */
+    private final Map<String, FilterChain> filterChainMap = new HashMap<>();
 
     public SyxInvokerHandler(Class<?> cls, RpcContext context, RpcConsumerContext consumerContext, List<InstanceMeta> providerList) {
         this.cls = cls;
         this.rpcContext = context;
         this.rpcConsumerContext = consumerContext;
         this.providerList = providerList;
-        this.invoker = new OkHttpInvoker(consumerContext);
-        this.executorService = Executors.newScheduledThreadPool(1);
-        this.executorService.scheduleWithFixedDelay(this::halfOpen,
-                consumerContext.getHalfOpenInitialDelay(),
-                consumerContext.getHalfOpenDelay(),
-                java.util.concurrent.TimeUnit.SECONDS);
-    }
-
-    private void halfOpen() {
-        log.debug("===> half open isolateProviderList: {}", isolateProviderList);
-        halfOpenProviderList.clear();
-        halfOpenProviderList.addAll(isolateProviderList);
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        // 判断基础类型
-        String methodName = method.getName();
-        if (MethodUtil.isLocalMethod(methodName)) {
-            return method.invoke(proxy, args);
+        // 1.前置处理
+        Object result = preCheck(proxy, method, args);
+        if (Objects.nonNull(result)) {
+            return result;
         }
 
-        RpcRequest request = new RpcRequest();
-        request.setService(cls.getCanonicalName());
-        request.setArgs(args);
-        // 生成方法签名
-        request.setMethodSign(MethodUtil.generateMethodSign(method));
+        // 2.生成请求内容
+        RpcRequest request = generateRpcRequest(method, args);
 
-        // 生成方法级别过滤器链表
+        // 3.生成过滤器链表
         Map<String, WrapperFilter> filterMap = rpcContext.getFilterMap();
         FilterChain filterChain = getFilterChain(request.getMethodSign(), method, filterMap);
 
+        // 4.获取重试次数（只有超时异常才去重试）
         int retryNum = getMethodRetryNum(method);
         log.debug("===> parse retryNum: {}", retryNum);
 
         while (retryNum-- > 0) {
-            log.info(" ===> retryNum: {}", retryNum);
-
+            // 5.执行调用
             try {
-                // 前置过滤处理
-                Object filterResult = filterChain.preFilter(request);
-                if (filterResult != null) {
-                    log.debug("前置过滤处理结果: {}", filterResult);
-                    return filterResult;
+                result = doInvoke(method, filterChain, request);
+                if (Objects.nonNull(result)) {
+                    break;
                 }
-
-                InstanceMeta instance = null;
-                synchronized (halfOpenProviderList) {
-                    if (halfOpenProviderList.isEmpty()) {
-                        // 获取服务提供者
-                        List<InstanceMeta> instances = rpcContext.getRouter().route(providerList);
-                        instance = rpcContext.getLoadBalancer().choose(instances);
-                        log.debug("real provider ======> {}", instance);
-                    } else {
-                        instance = halfOpenProviderList.remove(0);
-                        log.debug("half open provider ======> {}", instance);
-                    }
-                }
-
-                RpcResponse<?> response = null;
-                Object result = null;
-                String url = instance.toUrl();
-
-                try {
-                    response = invoker.post(request, url);
-                    result = castResponse(method, response);
-                } catch (Exception e) {
-
-                    SlidingTimeWindow window = windows.get(url);
-                    if (Objects.isNull(window)) {
-                        window = new SlidingTimeWindow();
-                        windows.put(url, window);
-                    }
-
-                    window.record(System.currentTimeMillis());
-                    log.debug("===> instance: {}, window: {}", url, window.getSum());
-
-                    // 发生10次则进行故障隔离
-                    if (window.getSum() >= rpcConsumerContext.getFaultLimit()) {
-                        isolate(instance);
-                    }
-
-                    throw e;
-                }
-
-                synchronized (providerList) {
-                    if (!providerList.contains(instance)) {
-                        isolateProviderList.remove(instance);
-                        providerList.add(instance);
-                        log.debug("===> instance recovery: {}, isolates={}, providers={}",
-                                instance, isolateProviderList, providerList);
-                    }
-                }
-
-                // 后置过滤处理
-                result = filterChain.postFilter(request, response, result);
-                log.debug("后置过滤处理结果: {}", response);
-
-                return result;
             } catch (Exception ex) {
+                log.error("===> rpc invoke error: {}", ex.getMessage());
                 if (!(ex.getCause() instanceof SocketTimeoutException)) {
                     throw ex;
                 }
             }
         }
 
+        return result;
+    }
+
+    protected Object preCheck(Object proxy, Method method, Object[] args) throws InvocationTargetException, IllegalAccessException {
+        String methodName = method.getName();
+        if (MethodUtil.isLocalMethod(methodName)) {
+            return method.invoke(proxy, args);
+        }
         return null;
     }
 
-    private void isolate(InstanceMeta instance) {
-        log.info("===> instance: {} is isolated", instance);
-        providerList.remove(instance);
-        log.debug("===> providerList: {}", providerList);
-        isolateProviderList.add(instance);
-        log.debug("===> isolateProviderList: {}", isolateProviderList);
+    protected RpcRequest generateRpcRequest(Method method, Object[] args) {
+        RpcRequest request = new RpcRequest();
+        request.setService(cls.getCanonicalName());
+        request.setArgs(args);
+        // 生成方法签名
+        request.setMethodSign(MethodUtil.generateMethodSign(method));
+        return request;
     }
 
-    @Nullable
-    private static Object castResponse(Method method, RpcResponse<?> response) {
-        if (response.isStatus()) {
-            Object data = response.getData();
-            Type type = method.getGenericReturnType();
-            return TypeUtil.castV1(data, type);
-        }
-
-        throw new RpcException(response.getEx());
-    }
-
-    private FilterChain getFilterChain(String methodSign, Method method, Map<String, WrapperFilter> filterMap) {
+    protected FilterChain getFilterChain(String methodSign, Method method, Map<String, WrapperFilter> filterMap) {
         FilterChain filterChain = filterChainMap.get(methodSign);
         if (Objects.nonNull(filterChain)) {
             log.debug("===> {} cache filter chain: {}", methodSign,
@@ -194,13 +111,14 @@ public class SyxInvokerHandler implements InvocationHandler {
         }
 
         filterChain = FilterChain.create(filterMap, filterNames);
+
         log.debug("===> {} create filter chain: {}", methodSign,
                 JSON.toJSONString(filterChain.getFilters().stream().map(e -> e.getClass().getSimpleName()).collect(Collectors.toList())));
         filterChainMap.put(methodSign, filterChain);
         return filterChain;
     }
 
-    private int getMethodRetryNum(Method method) {
+    protected int getMethodRetryNum(Method method) {
         String methodName = method.getName();
         int retryNum = rpcConsumerContext.getRetries();
         Map<String, Integer> methodRetryMap = rpcConsumerContext.getRetrytMap();
@@ -211,5 +129,59 @@ public class SyxInvokerHandler implements InvocationHandler {
             }
         }
         return retryNum;
+    }
+
+    @Nullable
+    private Object doInvoke(Method method, FilterChain filterChain, RpcRequest request) throws Exception {
+        Object result;
+
+        // 1.前置过滤处理
+        Object filterResult = filterChain.preFilter(request);
+        if (filterResult != null) {
+            log.debug("前置过滤处理结果: {}", filterResult);
+            return filterResult;
+        }
+
+        // 2.获取服务实例
+        InstanceMeta instance = calcInstanceMeta();
+
+        RpcResponse<?> response = null;
+        String url = instance.toUrl();
+        try {
+            preInvoke(instance, request, url);
+            // 3.序列化请求
+            byte[] bytes = rpcContext.getSerializer().serialize(request);
+
+            // 4.执行远程调用
+            response = rpcContext.getTransporter().invoke(bytes, url);
+            postInvoke(instance, response);
+        } catch (Exception exception) {
+            exceptionInvoke(instance, request, url, exception);
+        }
+
+        // 5.解析结果
+        result = rpcContext.getSerializer().deserialize(response, method.getGenericReturnType());
+
+        // 6.后置过滤处理
+        result = filterChain.postFilter(request, response, result);
+        log.debug("后置过滤处理结果: {}", response);
+
+        return result;
+    }
+
+    protected InstanceMeta calcInstanceMeta() {
+        // 获取服务提供者
+        List<InstanceMeta> instances = rpcContext.getRouter().route(providerList);
+        return rpcContext.getLoadBalancer().choose(instances);
+    }
+
+    public void preInvoke(InstanceMeta instance, RpcRequest request, String url) {
+    }
+
+    public void postInvoke(InstanceMeta instance, RpcResponse<?> response) {
+    }
+
+    public void exceptionInvoke(InstanceMeta instance, RpcRequest request, String url, Exception exception) throws Exception {
+        throw exception;
     }
 }

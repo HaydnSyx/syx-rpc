@@ -17,8 +17,10 @@ import java.util.Map;
 public class RpcContext {
 
     private Map<String, WrapperFilter> filterMap;
+    private Transporter transporter;
     private Router<InstanceMeta> router;
     private LoadBalancer<InstanceMeta> loadBalancer;
+    private ConsumerSerializer serializer;
     private Map<String, String> params = new HashMap<>();
 
     public static ThreadLocal<Map<String, String>> ContextParams = ThreadLocal.withInitial(

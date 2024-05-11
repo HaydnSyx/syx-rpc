@@ -19,6 +19,7 @@ import org.springframework.context.ApplicationContextAware;
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class ConsumerBootstrap implements ApplicationContextAware {
@@ -28,6 +29,7 @@ public class ConsumerBootstrap implements ApplicationContextAware {
     private final ConsumerProperties consumerProperties;
 
     private final Map<String, Object> STUB_MAP = new HashMap<>();
+    public static final Map<String, RpcConsumerContext> CONSUMER_CONTEXT_MAP = new ConcurrentHashMap<>();
 
     @Override
     public void setApplicationContext(@NotNull ApplicationContext context) throws BeansException {
@@ -45,9 +47,13 @@ public class ConsumerBootstrap implements ApplicationContextAware {
         Router<InstanceMeta> router = context.getBean(Router.class);
         LoadBalancer<InstanceMeta> loadBalancer = context.getBean(LoadBalancer.class);
         RegistryCenter registryCenter = context.getBean(RegistryCenter.class);
+        Transporter transporter = context.getBean(Transporter.class);
+        ConsumerSerializer serializer = context.getBean(ConsumerSerializer.class);
         RpcContext rpcContext = RpcContext.builder()
+                .transporter(transporter)
                 .filterMap(convertFilters(filters))
                 .router(router)
+                .serializer(serializer)
                 .loadBalancer(loadBalancer)
                 .build();
 
@@ -93,6 +99,7 @@ public class ConsumerBootstrap implements ApplicationContextAware {
         });
 
         RpcConsumerContext consumerContext = createConsumerContext(syx);
+        CONSUMER_CONTEXT_MAP.put(service.getCanonicalName(), consumerContext);
 
         return createConsumer(service, context, consumerContext, providers);
     }
@@ -141,6 +148,7 @@ public class ConsumerBootstrap implements ApplicationContextAware {
             consumerContext.setRetries(consumerProperties.getRetries());
         }
 
+        consumerContext.setEnableFaultTolerance(consumerProperties.isEnableFaultTolerance());
         consumerContext.setConnectionTimeout(consumerProperties.getConnectionTimeout());
         consumerContext.setFaultLimit(consumerProperties.getFaultLimit());
         consumerContext.setHalfOpenInitialDelay(consumerProperties.getHalfOpenInitialDelay());

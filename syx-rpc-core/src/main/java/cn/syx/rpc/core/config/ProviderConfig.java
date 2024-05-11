@@ -48,7 +48,6 @@ public class ProviderConfig {
     @Bean
     @ConditionalOnMissingBean
     public RegistryCenter providerRegistryCenter() {
-//        return new ZkRegistryCenter();
         return new SyxRegistryCenter();
     }
 

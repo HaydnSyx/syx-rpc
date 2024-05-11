@@ -13,6 +13,7 @@ public class RpcConsumerContext {
     private int retries;
     private int timeout;
     private int connectionTimeout;
+    private boolean enableFaultTolerance;
     private int faultLimit;
     private int halfOpenInitialDelay;
     private int halfOpenDelay;

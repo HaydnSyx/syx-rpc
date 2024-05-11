@@ -1,10 +1,9 @@
-package cn.syx.rpc.core.consumer.http;
+package cn.syx.rpc.core.transport;
 
-import cn.syx.rpc.core.api.RpcConsumerContext;
 import cn.syx.rpc.core.api.RpcException;
 import cn.syx.rpc.core.api.RpcRequest;
 import cn.syx.rpc.core.api.RpcResponse;
-import cn.syx.rpc.core.consumer.HttpInvoker;
+import cn.syx.rpc.core.api.Transporter;
 import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -13,29 +12,32 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class OkHttpInvoker implements HttpInvoker {
+public class CommonHttpTransporter implements Transporter {
 
     private static final MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
-
     private final OkHttpClient client;
 
-    public OkHttpInvoker(RpcConsumerContext consumerContext) {
+    public CommonHttpTransporter() {
+        this(128, 60, 1000, 1000, new DynamicConnectTimeout());
+    }
+
+    public CommonHttpTransporter(int maxConnections, int keepLiveSec, int connectionTimeout, int scopeTimeout, Interceptor interceptor) {
         this.client = new OkHttpClient().newBuilder()
-                .addInterceptor(new DynamicConnectTimeout(consumerContext))
-                .connectionPool(new ConnectionPool(16, 1, TimeUnit.MINUTES))
-                .readTimeout(consumerContext.getTimeout(), TimeUnit.MILLISECONDS)
-                .writeTimeout(consumerContext.getTimeout(), TimeUnit.MILLISECONDS)
-                .connectTimeout(consumerContext.getConnectionTimeout(), TimeUnit.MILLISECONDS)
+                .connectionPool(new ConnectionPool(maxConnections, keepLiveSec, TimeUnit.SECONDS))
+                .readTimeout(scopeTimeout, TimeUnit.MILLISECONDS)
+                .writeTimeout(scopeTimeout, TimeUnit.MILLISECONDS)
+                .connectTimeout(connectionTimeout, TimeUnit.MILLISECONDS)
                 .build();
+        if (Objects.nonNull(interceptor)) {
+            this.client.interceptors().add(interceptor);
+        }
     }
 
     @Override
-    public RpcResponse<?> post(RpcRequest request, String url) {
-        String body = JSON.toJSONString(request);
-
+    public RpcResponse<?> invoke(byte[] request, String url) {
         Request req = new Request.Builder()
                 .url(url)
-                .post(RequestBody.create(body, mediaType))
+                .post(RequestBody.create(request, mediaType))
                 .build();
         try (Response response = client.newCall(req).execute()) {
             ResponseBody responseBody = response.body();
@@ -49,15 +51,5 @@ public class OkHttpInvoker implements HttpInvoker {
         } catch (Exception e) {
             return new RpcResponse<>(false, null, new RpcException(e.getMessage()));
         }
-    }
-
-    @Override
-    public String post(String requestStr, String url) {
-        return null;
-    }
-
-    @Override
-    public String get(String url) {
-        return null;
     }
 }

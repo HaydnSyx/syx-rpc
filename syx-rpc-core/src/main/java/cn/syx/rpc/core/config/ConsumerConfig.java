@@ -1,9 +1,6 @@
 package cn.syx.rpc.core.config;
 
-import cn.syx.rpc.core.api.Filter;
-import cn.syx.rpc.core.api.LoadBalancer;
-import cn.syx.rpc.core.api.RegistryCenter;
-import cn.syx.rpc.core.api.Router;
+import cn.syx.rpc.core.api.*;
 import cn.syx.rpc.core.cluster.GrayRouter;
 import cn.syx.rpc.core.cluster.RoundRibbonLoadBalancer;
 import cn.syx.rpc.core.consumer.ConsumerBootstrap;
@@ -13,6 +10,8 @@ import cn.syx.rpc.core.filter.MockFilter;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.registry.syx.SyxRegistryCenter;
 import cn.syx.rpc.core.registry.zk.ZkRegistryCenter;
+import cn.syx.rpc.core.serialize.SyxConsumerSerializer;
+import cn.syx.rpc.core.transport.CommonHttpTransporter;
 import com.ctrip.framework.apollo.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
@@ -50,6 +49,12 @@ public class ConsumerConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    public Transporter transporter() {
+        return new CommonHttpTransporter();
+    }
+
+    @Bean
     public Filter defaultFilter() {
         return new ContextParameterFilter();
     }
@@ -67,6 +72,12 @@ public class ConsumerConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    public ConsumerSerializer consumerSerializer() {
+        return new SyxConsumerSerializer();
+    }
+
+    @Bean
     public LoadBalancer<InstanceMeta> loadBalancer() {
         return new RoundRibbonLoadBalancer<>();
     }
@@ -79,7 +90,6 @@ public class ConsumerConfig {
     @Bean(initMethod = "start", destroyMethod = "stop")
     @ConditionalOnMissingBean
     public RegistryCenter registryCenter() {
-//        return new ZkRegistryCenter();
         return new SyxRegistryCenter();
     }
 }
