@@ -1,6 +1,6 @@
 # RPC搭建过程梳理
 
-![框架图](https://github.com/HaydnSyx/syx-rpc/img/SYX_RPC_ARCHITECTURE.png)
+![框架图](https://raw.githubusercontent.com/HaydnSyx/syx-rpc/main/img/SYX_RPC_ARCHITECTURE.png)
 
 ## 框架核心
 ### 服务端

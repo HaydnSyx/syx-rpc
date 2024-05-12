@@ -1,5 +1,6 @@
 package cn.syx.rpc.demo.consumer;
 
+import cn.syx.config.client.annotation.EnableSyxConfig;
 import cn.syx.rpc.core.annotation.EnableConsumer;
 import cn.syx.rpc.core.annotation.EnableProvider;
 import cn.syx.rpc.core.annotation.SyxConsumer;
@@ -20,7 +21,8 @@ import java.util.UUID;
 @RestController
 @SpringBootApplication
 @EnableConsumer
-@EnableApolloConfig
+@EnableSyxConfig
+//@EnableApolloConfig
 public class SyxRpcDemoConsumerApplication {
 
     @SyxConsumer

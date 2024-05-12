@@ -1,5 +1,6 @@
 package cn.syx.rpc.demo.provider;
 
+import cn.syx.config.client.annotation.EnableSyxConfig;
 import cn.syx.rpc.core.annotation.EnableProvider;
 import cn.syx.rpc.core.config.ProviderConfig;
 import cn.syx.rpc.core.config.ProviderProperties;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @EnableProvider
+@EnableSyxConfig
 @SpringBootApplication
 public class SyxRpcDemoProviderApplication {
 

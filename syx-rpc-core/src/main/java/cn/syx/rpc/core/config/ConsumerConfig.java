@@ -6,6 +6,7 @@ import cn.syx.rpc.core.cluster.GrayRouter;
 import cn.syx.rpc.core.cluster.RoundRibbonLoadBalancer;
 import cn.syx.rpc.core.configcenter.DynamicRequestTime;
 import cn.syx.rpc.core.configcenter.apollo.ApolloTimeoutChangedListener;
+import cn.syx.rpc.core.configcenter.syx.SyxTimeoutChangedListener;
 import cn.syx.rpc.core.consumer.ConsumerBootstrap;
 import cn.syx.rpc.core.filter.CacheFilter;
 import cn.syx.rpc.core.filter.ContextParameterFilter;
@@ -52,7 +53,7 @@ public class ConsumerConfig {
     @Bean
     @ConditionalOnMissingBean
     public DynamicRequestTime dynamicRequestTime() {
-        return new ApolloTimeoutChangedListener();
+        return new SyxTimeoutChangedListener();
     }
 
     @Bean
