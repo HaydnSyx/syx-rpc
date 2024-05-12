@@ -51,19 +51,28 @@ public class DynamicConnectTimeout implements Interceptor {
             // 1.从配置中心中获取超时时间
             Integer timeout = null;
             if (Objects.nonNull(dynamicRequestTime)) {
-                timeout = dynamicRequestTime.getTimeout(service, methodName);
+                timeout = dynamicRequestTime.getSocketTimeout(service, methodName);
             }
 
-            // 2.启动配置中获取超时时间
+            // 2.默认配置中获取超时时间
             if (Objects.isNull(timeout)) {
                 timeout = consumerContext.getTimeoutMap().get(methodName);
             }
+            // 3.全局配置中获取超时时间
             int socketTimeout = Optional.ofNullable(timeout).orElse(consumerContext.getTimeout());
 
-            log.debug("===> {} invoker provider, connection_time={}ms, read_time={}ms, write_time={}ms",
-                    methodSign, consumerContext.getConnectionTimeout(), socketTimeout, socketTimeout);
+            // 1.从配置中心中获取连接超时时间
+            Integer connectionTimeout = null;
+            if (Objects.nonNull(dynamicRequestTime)) {
+                connectionTimeout = dynamicRequestTime.getConnectionTimeout(service, methodName);
+            }
+            // 2.全局配置中获取超时时间
+            connectionTimeout = Optional.ofNullable(connectionTimeout).orElse(consumerContext.getConnectionTimeout());
 
-            return chain.withConnectTimeout(consumerContext.getConnectionTimeout(), TimeUnit.MILLISECONDS)
+            log.debug("===> {} invoker provider, connection_time={}ms, read_time={}ms, write_time={}ms",
+                    methodSign, connectionTimeout, socketTimeout, socketTimeout);
+
+            return chain.withConnectTimeout(connectionTimeout, TimeUnit.MILLISECONDS)
                     .withReadTimeout(socketTimeout, TimeUnit.MILLISECONDS)
                     .withWriteTimeout(socketTimeout, TimeUnit.MILLISECONDS)
                     .proceed(request);

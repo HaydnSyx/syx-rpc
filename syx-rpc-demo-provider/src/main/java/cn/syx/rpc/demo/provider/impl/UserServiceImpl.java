@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findById(int id) {
-        return new User(id, "syx" + "-" + "V3" + "-" + environment.getProperty("server.port") + "-" + System.currentTimeMillis());
+        return new User(id, "syx" + "-" + "V3" + "-" + environment.getProperty("server.port") + "-" + environment.getProperty("syxrpc.provider.port") + "-" + System.currentTimeMillis());
     }
 
     @Override

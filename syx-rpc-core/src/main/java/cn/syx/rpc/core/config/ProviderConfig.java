@@ -5,7 +5,7 @@ import cn.syx.rpc.core.configcenter.apollo.ApolloChangedListener;
 import cn.syx.rpc.core.provider.ProviderBootstrap;
 import cn.syx.rpc.core.provider.ProviderInvoker;
 import cn.syx.rpc.core.registry.syx.SyxRegistryCenter;
-import cn.syx.rpc.core.provider.SpringBootTransport;
+import cn.syx.rpc.core.provider.ProviderExposer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 
 @Configuration
-@Import({AppProperties.class, ProviderProperties.class, SpringBootTransport.class})
+@Import({AppProperties.class, ProviderProperties.class, ProviderExposer.class})
 public class ProviderConfig {
 
     @Value("${server.port:8080}")

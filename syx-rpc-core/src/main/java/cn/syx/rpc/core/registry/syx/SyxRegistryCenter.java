@@ -26,7 +26,6 @@ public class SyxRegistryCenter implements RegistryCenter {
 
     @Value("${syxregistry.services}")
     private String services;
-//    private OkHttpClient client;
 
     private Map<String, Long> VERSIONS = new HashMap<>();
     MultiValueMap<InstanceMeta, ServiceMeta> RENEWS = new LinkedMultiValueMap<>();
@@ -35,13 +34,6 @@ public class SyxRegistryCenter implements RegistryCenter {
 
     @Override
     public void start() {
-        /*this.client = new OkHttpClient().newBuilder()
-//                .addInterceptor(new DynamicConnectTimeout(consumerContext))
-                .connectionPool(new ConnectionPool(16, 1, TimeUnit.MINUTES))
-                .readTimeout(1000, TimeUnit.MILLISECONDS)
-                .writeTimeout(1000, TimeUnit.MILLISECONDS)
-                .connectTimeout(1000, TimeUnit.MILLISECONDS)
-                .build();*/
         log.info("===> SyxRegistryCenter started.");
 
         executorService = Executors.newScheduledThreadPool(1);

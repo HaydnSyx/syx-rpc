@@ -8,6 +8,16 @@ Content-Type: application/json
   "args": [10000]
 }
 
+### 获取用户信息
+POST http://localhost:6071/rpc
+Content-Type: application/json
+
+{
+  "service": "cn.syx.rpc.demo.api.UserService",
+  "methodSign": "findById(int)",
+  "args": [10000]
+}
+
 ### 通过6081调用配置项
 GET http://localhost:6081/metas
 

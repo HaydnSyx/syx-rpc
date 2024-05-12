@@ -20,13 +20,18 @@ import java.util.Objects;
 
 @Data
 @Slf4j
-public class TimeoutChangedListener implements DynamicRequestTime {
+public class ApolloTimeoutChangedListener implements DynamicRequestTime {
 
     private static Map<String, ConsumerTimeoutConfig> timeoutConfigMap = new HashMap<>();
 
     @Override
-    public Integer getTimeout(String serviceName, String methodName) {
+    public Integer getSocketTimeout(String serviceName, String methodName) {
         return doGetTimeout(serviceName, methodName);
+    }
+
+    @Override
+    public Integer getConnectionTimeout(String serviceName, String methodName) {
+        return null;
     }
 
     @EventListener(ApplicationReadyEvent.class)

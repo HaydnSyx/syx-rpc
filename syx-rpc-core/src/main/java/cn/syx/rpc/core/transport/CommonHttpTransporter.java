@@ -41,6 +41,7 @@ public class CommonHttpTransporter implements Transporter {
                 .url(url)
                 .post(RequestBody.create(request, mediaType))
                 .build();
+        log.debug("provider request url ======> {}", url);
         try (Response response = client.newCall(req).execute()) {
             ResponseBody responseBody = response.body();
             if (Objects.isNull(responseBody)) {
