@@ -1,5 +1,7 @@
 package cn.syx.rpc.core.registry.syx;
 
+import cn.syx.registry.client.SyxRegistryClient;
+import cn.syx.registry.client.model.SyxRegistryInstanceMeta;
 import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.consumer.HttpInvoker;
 import cn.syx.rpc.core.meta.InstanceMeta;
@@ -9,6 +11,7 @@ import cn.syx.rpc.core.registry.RegistryChangeEvent;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -20,24 +23,31 @@ import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class SyxRegistryCenter implements RegistryCenter {
 
-    @Value("${syxregistry.services}")
-    private String services;
+//    @Value("${syxregistry.services}")
+//    private String services;
 
     private Map<String, Long> VERSIONS = new HashMap<>();
-    MultiValueMap<InstanceMeta, ServiceMeta> RENEWS = new LinkedMultiValueMap<>();
+//    MultiValueMap<InstanceMeta, ServiceMeta> RENEWS = new LinkedMultiValueMap<>();
     private ScheduledExecutorService executorService;
-    private ScheduledExecutorService providerService;
+//    private ScheduledExecutorService providerService;
+
+    private SyxRegistryClient registryClient;
+
+    public SyxRegistryCenter(SyxRegistryClient registryClient) {
+        this.registryClient = registryClient;
+    }
 
     @Override
     public void start() {
         log.info("===> SyxRegistryCenter started.");
 
         executorService = Executors.newScheduledThreadPool(1);
-        providerService = Executors.newScheduledThreadPool(1);
+        /*providerService = Executors.newScheduledThreadPool(1);
 
         providerService.scheduleWithFixedDelay(() -> {
             RENEWS.keySet().forEach(e -> {
@@ -45,14 +55,14 @@ public class SyxRegistryCenter implements RegistryCenter {
                 log.info("===> SyxRegistryCenter renew instance: {} for services: {}", e, services);
                 HttpInvoker.httpPost(JSON.toJSONString(e), this.services + "/renews?services=" + services, Long.class);
             });
-        }, 5000, 5000, TimeUnit.MILLISECONDS);
+        }, 5000, 5000, TimeUnit.MILLISECONDS);*/
     }
 
     @Override
     public void stop() {
         log.info("===> SyxRegistryCenter stopped.");
         gracefulShutdown(executorService);
-        gracefulShutdown(providerService);
+//        gracefulShutdown(providerService);
     }
 
     private void gracefulShutdown(ScheduledExecutorService executor) {
@@ -69,26 +79,18 @@ public class SyxRegistryCenter implements RegistryCenter {
 
     @Override
     public void register(ServiceMeta service, InstanceMeta instance) {
-        log.info("===> SyxRegistryCenter registry start instance: {} for service: {}", instance, service);
-        HttpInvoker.httpPost(JSON.toJSONString(instance), services + "/reg?service=" + service.toPath(), InstanceMeta.class);
-        log.info("===> SyxRegistryCenter registry end instance: {}", instance);
-        RENEWS.add(instance, service);
+        registryClient.register(service.toPath(), convert(instance));
     }
 
     @Override
     public void unregister(ServiceMeta service, InstanceMeta instance) {
-        log.info("===> SyxRegistryCenter unregistry start instance: {} for service: {}", instance, service);
-        HttpInvoker.httpPost(JSON.toJSONString(instance), services + "/unreg?service=" + service.toPath(), InstanceMeta.class);
-        log.info("===> SyxRegistryCenter unregistry end instance: {}", instance);
+        registryClient.unregister(service.toPath(), convert(instance));
     }
 
     @Override
     public List<InstanceMeta> fetchAll(ServiceMeta service) {
-        log.info("===> SyxRegistryCenter fetchAll start service: {}", service);
-        List<InstanceMeta> instanceMetas = HttpInvoker.httpGet(services + "/findAll?service=" + service.toPath(), new TypeReference<List<InstanceMeta>>() {
-        });
-        log.info("===> SyxRegistryCenter fetchAll end service: {}, instances: {}", service, instanceMetas);
-        return instanceMetas;
+        List<SyxRegistryInstanceMeta> instanceMetas = registryClient.fetchAll(service.toPath());
+        return instanceMetas.stream().map(this::convert).collect(Collectors.toList());
     }
 
     @Override
@@ -100,7 +102,7 @@ public class SyxRegistryCenter implements RegistryCenter {
                 version = -1L;
             }
 
-            Long newVersion = HttpInvoker.httpGet(services + "/version?service=" + service.toPath(), Long.class);
+            Long newVersion = registryClient.version(service.toPath());
             log.info("===> SyxRegistryCenter subscribe service: {}, version: {}, newVersion: {}", service, version, newVersion);
             if (newVersion > version) {
                 // 获取最新的服务实例
@@ -109,5 +111,27 @@ public class SyxRegistryCenter implements RegistryCenter {
                 VERSIONS.put(service.toPath(), newVersion);
             }
         }, 1000, 5000, TimeUnit.MILLISECONDS);
+    }
+
+    private SyxRegistryInstanceMeta convert(InstanceMeta instanceMeta) {
+        SyxRegistryInstanceMeta meta = new SyxRegistryInstanceMeta();
+        meta.setHost(instanceMeta.getHost());
+        meta.setPort(instanceMeta.getPort());
+        meta.setSchema(instanceMeta.getSchema());
+        meta.setPath(instanceMeta.getPath());
+        meta.setStatus(instanceMeta.isStatus());
+        meta.setParameters(instanceMeta.getParameters());
+        return meta;
+    }
+
+    private InstanceMeta convert(SyxRegistryInstanceMeta instanceMeta) {
+        InstanceMeta meta = new InstanceMeta();
+        meta.setHost(instanceMeta.getHost());
+        meta.setPort(instanceMeta.getPort());
+        meta.setSchema(instanceMeta.getSchema());
+        meta.setPath(instanceMeta.getPath());
+        meta.setStatus(instanceMeta.isStatus());
+        meta.setParameters(instanceMeta.getParameters());
+        return meta;
     }
 }

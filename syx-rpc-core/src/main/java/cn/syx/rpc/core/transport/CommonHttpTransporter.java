@@ -25,12 +25,12 @@ public class CommonHttpTransporter implements Transporter {
         this(128, 60, 1000, 1000, new DynamicConnectTimeout(requestTime));
     }
 
-    public CommonHttpTransporter(int maxConnections, int keepLiveSec, int connectionTimeout, int scopeTimeout, Interceptor interceptor) {
+    public CommonHttpTransporter(int maxConnections, int keepLiveSec, int connectionTimeout, int socketTimeout, Interceptor interceptor) {
         this.client = new OkHttpClient().newBuilder()
                 .addInterceptor(interceptor)
                 .connectionPool(new ConnectionPool(maxConnections, keepLiveSec, TimeUnit.SECONDS))
-                .readTimeout(scopeTimeout, TimeUnit.MILLISECONDS)
-                .writeTimeout(scopeTimeout, TimeUnit.MILLISECONDS)
+                .readTimeout(socketTimeout, TimeUnit.MILLISECONDS)
+                .writeTimeout(socketTimeout, TimeUnit.MILLISECONDS)
                 .connectTimeout(connectionTimeout, TimeUnit.MILLISECONDS)
                 .build();
     }

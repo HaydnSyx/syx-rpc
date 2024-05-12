@@ -1,5 +1,6 @@
 package cn.syx.rpc.core.config;
 
+import cn.syx.registry.client.SyxRegistryClient;
 import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.configcenter.apollo.ApolloChangedListener;
 import cn.syx.rpc.core.provider.ProviderBootstrap;
@@ -47,8 +48,8 @@ public class ProviderConfig {
 
     @Bean
     @ConditionalOnMissingBean
-    public RegistryCenter providerRegistryCenter() {
-        return new SyxRegistryCenter();
+    public RegistryCenter providerRegistryCenter(@Autowired SyxRegistryClient registryClient) {
+        return new SyxRegistryCenter(registryClient);
     }
 
     @Bean

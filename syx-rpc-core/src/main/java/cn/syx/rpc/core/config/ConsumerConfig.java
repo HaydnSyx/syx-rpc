@@ -1,5 +1,6 @@
 package cn.syx.rpc.core.config;
 
+import cn.syx.registry.client.SyxRegistryClient;
 import cn.syx.rpc.core.api.*;
 import cn.syx.rpc.core.cluster.GrayRouter;
 import cn.syx.rpc.core.cluster.RoundRibbonLoadBalancer;
@@ -95,7 +96,7 @@ public class ConsumerConfig {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     @ConditionalOnMissingBean
-    public RegistryCenter registryCenter() {
-        return new SyxRegistryCenter();
+    public RegistryCenter registryCenter(@Autowired SyxRegistryClient registryClient) {
+        return new SyxRegistryCenter(registryClient);
     }
 }
