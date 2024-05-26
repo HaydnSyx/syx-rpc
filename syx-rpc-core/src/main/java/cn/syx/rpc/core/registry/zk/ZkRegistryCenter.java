@@ -1,8 +1,8 @@
 package cn.syx.rpc.core.registry.zk;
 
+import cn.syx.registry.core.model.instance.RpcServiceMeta;
 import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.meta.InstanceMeta;
-import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.registry.RegistryChangeListener;
 import cn.syx.rpc.core.registry.RegistryChangeEvent;
 import com.alibaba.fastjson2.JSON;
@@ -50,12 +50,12 @@ public class ZkRegistryCenter implements RegistryCenter {
     }
 
     @Override
-    public void register(ServiceMeta service, InstanceMeta instance) {
-        String servicePath = "/" + service.toPath();
+    public void register(RpcServiceMeta service, InstanceMeta instance) {
+        String servicePath = "/" + service.identity();
         try {
             // 创建服务的持久节点
             if (client.checkExists().forPath(servicePath) == null) {
-                client.create().withMode(CreateMode.PERSISTENT).forPath(servicePath, service.toMetas().getBytes());
+                client.create().withMode(CreateMode.PERSISTENT).forPath(servicePath, toMetas(service).getBytes());
             }
 
             // 创建实例的临时节点
@@ -67,9 +67,19 @@ public class ZkRegistryCenter implements RegistryCenter {
         }
     }
 
+    private String toMetas(RpcServiceMeta instanceMeta) {
+        return String.format("%s_%s_%s_%s_%s",
+                instanceMeta.getNamespace(),
+                instanceMeta.getEnv(),
+                instanceMeta.getGroup(),
+                instanceMeta.getName(),
+                instanceMeta.getVersion()
+        );
+    }
+
     @Override
-    public void unregister(ServiceMeta service, InstanceMeta instance) {
-        String servicePath = "/" + service.toPath();
+    public void unregister(RpcServiceMeta service, InstanceMeta instance) {
+        String servicePath = "/" + service.identity();
         try {
             // 判断服务是否存在
             if (client.checkExists().forPath(servicePath) == null) {
@@ -86,8 +96,8 @@ public class ZkRegistryCenter implements RegistryCenter {
     }
 
     @Override
-    public List<InstanceMeta> fetchAll(ServiceMeta serviceName) {
-        String servicePath = "/" + serviceName.toPath();
+    public List<InstanceMeta> fetchAll(RpcServiceMeta serviceName) {
+        String servicePath = "/" + serviceName.identity();
         try {
             List<String> nodes = client.getChildren().forPath(servicePath);
 //            log.info("====> fetchAll service: " + serviceName + ", nodes: " + JSON.toJSON(nodes));
@@ -111,8 +121,8 @@ public class ZkRegistryCenter implements RegistryCenter {
     }
 
     @Override
-    public void subscribe(ServiceMeta service, RegistryChangeListener listener) {
-        final TreeCache cache = TreeCache.newBuilder(client, "/" + service.toPath())
+    public void subscribe(RpcServiceMeta service, RegistryChangeListener listener) {
+        final TreeCache cache = TreeCache.newBuilder(client, "/" + service.identity())
                 .setCacheData(true)
                 .setMaxDepth(2)
                 .build();

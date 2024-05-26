@@ -1,12 +1,12 @@
 package cn.syx.rpc.core.consumer;
 
+import cn.syx.registry.core.model.instance.RpcServiceMeta;
 import cn.syx.rpc.core.annotation.SyxConsumer;
 import cn.syx.rpc.core.annotation.SyxFilter;
 import cn.syx.rpc.core.api.*;
 import cn.syx.rpc.core.config.AppProperties;
 import cn.syx.rpc.core.config.ConsumerProperties;
 import cn.syx.rpc.core.meta.InstanceMeta;
-import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
 import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
@@ -83,9 +83,9 @@ public class ConsumerBootstrap implements ApplicationContextAware {
     }
 
     private Object createFromRegistryCenter(Class<?> service, RpcContext context, RegistryCenter rc, SyxConsumer syx) {
-        ServiceMeta serviceMeta = ServiceMeta.builder()
-                .namespace(StringUtils.isBlank(syx.namespace()) ? appProperties.getNamespace() : syx.namespace())
+        RpcServiceMeta serviceMeta = RpcServiceMeta.builder()
                 .env(appProperties.getEnv())
+                .namespace(StringUtils.isBlank(syx.namespace()) ? appProperties.getNamespace() : syx.namespace())
                 .group(StringUtils.isBlank(syx.group()) ? appProperties.getGroup() : syx.group())
                 .name(service.getCanonicalName())
                 .version(StringUtils.isBlank(syx.version()) ? appProperties.getVersion() : syx.version())

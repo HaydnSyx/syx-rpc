@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @EnableProvider
-@EnableSyxConfig
+//@EnableSyxConfig
 @SpringBootApplication
 public class SyxRpcDemoProviderApplication {
 

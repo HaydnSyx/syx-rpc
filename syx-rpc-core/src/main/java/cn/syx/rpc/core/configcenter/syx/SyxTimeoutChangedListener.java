@@ -19,7 +19,7 @@ public class SyxTimeoutChangedListener implements DynamicRequestTime {
 
     private static Map<String, ConsumerTimeoutConfig> timeoutConfigMap = new HashMap<>();
 
-    @Value("${syx.rpc.dynamic.timeout}")
+    @Value("${syx.rpc.dynamic.timeout:}")
     private String timeoutJson;
 
     @Override
@@ -51,7 +51,10 @@ public class SyxTimeoutChangedListener implements DynamicRequestTime {
 
     private void receiveData() {
         try {
-            String content = Optional.of(timeoutJson).orElse("{}");
+            String content = "{}";
+            if (Objects.nonNull(timeoutJson) && !Objects.equals("", timeoutJson)) {
+                content = timeoutJson;
+            }
             Map<String, ConsumerTimeoutConfig> temp = JSON.parseObject(content, new TypeReference<Map<String, ConsumerTimeoutConfig>>() {
             });
             timeoutConfigMap = temp;

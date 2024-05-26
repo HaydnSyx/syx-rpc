@@ -21,7 +21,7 @@ import java.util.UUID;
 @RestController
 @SpringBootApplication
 @EnableConsumer
-@EnableSyxConfig
+//@EnableSyxConfig
 //@EnableApolloConfig
 public class SyxRpcDemoConsumerApplication {
 

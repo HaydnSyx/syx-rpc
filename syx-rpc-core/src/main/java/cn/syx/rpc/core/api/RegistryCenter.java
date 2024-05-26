@@ -1,7 +1,7 @@
 package cn.syx.rpc.core.api;
 
+import cn.syx.registry.core.model.instance.RpcServiceMeta;
 import cn.syx.rpc.core.meta.InstanceMeta;
-import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.registry.RegistryChangeListener;
 
 import java.util.List;
@@ -12,11 +12,11 @@ public interface RegistryCenter {
 
     void stop();
 
-    void register(ServiceMeta service, InstanceMeta instance);
+    void register(RpcServiceMeta service, InstanceMeta instance);
 
-    void unregister(ServiceMeta service, InstanceMeta instance);
+    void unregister(RpcServiceMeta service, InstanceMeta instance);
 
-    List<InstanceMeta> fetchAll(ServiceMeta service);
+    List<InstanceMeta> fetchAll(RpcServiceMeta service);
 
-    void subscribe(ServiceMeta service, RegistryChangeListener listener);
+    void subscribe(RpcServiceMeta service, RegistryChangeListener listener);
 }

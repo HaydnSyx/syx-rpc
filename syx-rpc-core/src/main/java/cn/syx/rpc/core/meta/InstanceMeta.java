@@ -1,5 +1,6 @@
 package cn.syx.rpc.core.meta;
 
+import cn.syx.registry.core.model.RegistryInstanceMeta;
 import com.alibaba.fastjson2.JSON;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,19 +9,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-@EqualsAndHashCode(of = {"schema", "host", "port", "path"})
-public class InstanceMeta {
-
-    private String schema;
-    private String host;
-    private int port;
-    private String path = "rpc";
-
-    private boolean status;// online or offline
-    private Map<String, String> parameters = new HashMap<>();
+@EqualsAndHashCode(callSuper = true)
+public class InstanceMeta extends RegistryInstanceMeta {
 
     public String toPath() {
-        return String.format("%s_%d", host, port);
+        return String.format("%s_%d", getHost(), getPort());
     }
 
     public static InstanceMeta http(String path) {
@@ -38,15 +31,15 @@ public class InstanceMeta {
     }
 
     public String toUrl() {
-        return String.format("%s://%s:%d/%s", schema, host, port, path);
+        return String.format("%s://%s:%d/%s", getSchema(), getHost(), getPort(), getPath());
     }
 
     public String toMetas() {
-        return JSON.toJSONString(parameters);
+        return JSON.toJSONString(getParameters());
     }
 
     public InstanceMeta addParam(String key, String value) {
-        parameters.put(key, value);
+        getParameters().put(key, value);
         return this;
     }
 }

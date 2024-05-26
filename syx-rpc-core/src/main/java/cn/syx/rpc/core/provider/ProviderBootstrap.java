@@ -1,12 +1,12 @@
 package cn.syx.rpc.core.provider;
 
+import cn.syx.registry.core.model.instance.RpcServiceMeta;
 import cn.syx.rpc.core.annotation.SyxProvider;
 import cn.syx.rpc.core.api.RegistryCenter;
 import cn.syx.rpc.core.config.AppProperties;
 import cn.syx.rpc.core.config.ProviderProperties;
 import cn.syx.rpc.core.meta.InstanceMeta;
 import cn.syx.rpc.core.meta.ProviderMeta;
-import cn.syx.rpc.core.meta.ServiceMeta;
 import cn.syx.rpc.core.utils.MethodUtil;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -107,10 +107,10 @@ public class ProviderBootstrap implements ApplicationContextAware {
 
     private void registerService(String service, ProviderMeta meta) {
         SyxProvider provider = meta.getService().getClass().getAnnotation(SyxProvider.class);
-        ServiceMeta serviceMeta = ServiceMeta.builder()
-                .group(StringUtils.isBlank(provider.group()) ? appProperties.getGroup() : provider.group())
-                .namespace(StringUtils.isBlank(provider.namespace()) ? appProperties.getNamespace() : provider.namespace())
+        RpcServiceMeta serviceMeta = RpcServiceMeta.builder()
                 .env(appProperties.getEnv())
+                .namespace(StringUtils.isBlank(provider.namespace()) ? appProperties.getNamespace() : provider.namespace())
+                .group(StringUtils.isBlank(provider.group()) ? appProperties.getGroup() : provider.group())
                 .name(service)
                 .version(StringUtils.isBlank(provider.version()) ? appProperties.getVersion() : provider.version())
                 .build();
@@ -118,10 +118,10 @@ public class ProviderBootstrap implements ApplicationContextAware {
     }
 
     private void unregisterService(String service) {
-        ServiceMeta serviceMeta = ServiceMeta.builder()
-                .group(appProperties.getGroup())
-                .namespace(appProperties.getNamespace())
+        RpcServiceMeta serviceMeta = RpcServiceMeta.builder()
                 .env(appProperties.getEnv())
+                .namespace(appProperties.getNamespace())
+                .group(appProperties.getGroup())
                 .name(service)
                 .version(appProperties.getVersion())
                 .build();
